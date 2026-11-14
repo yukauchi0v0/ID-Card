@@ -1,27 +1,33 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-  <meta name="theme-color" content="#07080b" />
+  <meta name="theme-color" content="#f6f6f6" />
   <link rel="icon" href="data:," />
-  <title>AR CARD · 图像触发演示</title>
+  <title>ID Card · WebAR</title>
   <style>
     :root {
-      --bg: #07080b;
-      --panel: rgba(17, 20, 27, 0.9);
-      --panel-2: rgba(22, 26, 35, 0.9);
-      --line: rgba(255, 255, 255, 0.09);
-      --line-strong: rgba(255, 255, 255, 0.16);
-      --text: #f4f1ea;
-      --muted: #929aaa;
-      --accent: #ff8a3d;
-      --accent-2: #ffc46b;
-      --good: #6de2a5;
-      --danger: #ff7770;
-      --radius: 22px;
-      --font: -apple-system, BlinkMacSystemFont, "SF Pro SC", "PingFang SC",
-        "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+      --bg: #f6f6f6;
+      --surface: #ffffff;
+      --surface-soft: #fbfcfc;
+      --ink: #1f2f2f;
+      --ink-soft: #415454;
+      --muted: #718181;
+      --mint: #99ddcc;
+      --mint-strong: #67bfae;
+      --mint-soft: #eaf9f4;
+      --blue: #bad7df;
+      --blue-soft: #eef7fa;
+      --blush: #ffe2e2;
+      --blush-soft: #fff3f3;
+      --line: rgba(31, 47, 47, 0.11);
+      --line-strong: rgba(31, 47, 47, 0.19);
+      --danger: #d95e5e;
+      --radius: 26px;
+      --shadow: 0 24px 70px rgba(57, 84, 84, 0.12);
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro TC", "PingFang TC",
+        "Hiragino Sans CNS", "Noto Sans TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
     }
 
     * { box-sizing: border-box; }
@@ -30,8 +36,8 @@
     html, body {
       margin: 0;
       min-height: 100%;
+      color: var(--ink);
       background: var(--bg);
-      color: var(--text);
       font-family: var(--font);
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
@@ -41,93 +47,94 @@
       min-height: 100dvh;
       overflow-x: hidden;
       background:
-        radial-gradient(900px 480px at 8% -8%, rgba(255, 138, 61, 0.16), transparent 62%),
-        radial-gradient(760px 520px at 104% 10%, rgba(111, 133, 255, 0.12), transparent 60%),
+        radial-gradient(900px 480px at -8% -10%, rgba(153, 221, 204, 0.42), transparent 60%),
+        radial-gradient(760px 500px at 108% 6%, rgba(186, 215, 223, 0.5), transparent 62%),
+        radial-gradient(560px 420px at 70% 100%, rgba(255, 226, 226, 0.7), transparent 65%),
         var(--bg);
     }
 
-    body.ar-active {
-      overflow: hidden;
-      overscroll-behavior: none;
-    }
-
-    button, input, textarea { font: inherit; }
+    body.ar-active { overflow: hidden; overscroll-behavior: none; }
+    button, input, textarea, select { font: inherit; }
     button { -webkit-tap-highlight-color: transparent; }
-    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    :focus-visible { outline: 2px solid var(--mint-strong); outline-offset: 3px; }
 
-    /* ------------------------------------------------------------------
-       SETUP
-    ------------------------------------------------------------------ */
+    /* ============================== SETUP ============================== */
     #setup {
       min-height: 100dvh;
       padding: max(18px, env(safe-area-inset-top)) 18px max(24px, env(safe-area-inset-bottom));
     }
 
-    .setup-inner {
-      width: min(100%, 920px);
-      margin: 0 auto;
-    }
+    .setup-inner { width: min(100%, 980px); margin: 0 auto; }
 
-    .hero {
-      padding: clamp(22px, 5vw, 58px) 4px clamp(24px, 5vw, 46px);
-    }
+    .hero { padding: clamp(22px, 5vw, 58px) 4px clamp(24px, 5vw, 46px); }
 
     .eyebrow {
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 9px;
-      color: var(--accent-2);
-      font-size: 11px;
-      font-weight: 650;
-      letter-spacing: 0.2em;
+      padding: 7px 12px;
+      border: 1px solid rgba(31, 47, 47, 0.1);
+      border-radius: 999px;
+      color: var(--ink-soft);
+      background: rgba(255, 255, 255, 0.6);
+      font-size: 10px;
+      font-weight: 750;
+      letter-spacing: 0.18em;
     }
 
-    .live-dot {
+    .eyebrow-dot {
       width: 7px;
       height: 7px;
       border-radius: 50%;
-      background: var(--accent);
-      box-shadow: 0 0 0 5px rgba(255, 138, 61, 0.12), 0 0 18px rgba(255, 138, 61, 0.8);
-      animation: breathe 2.4s ease-in-out infinite;
-    }
-
-    @keyframes breathe {
-      0%, 100% { transform: scale(0.82); opacity: 0.65; }
-      50% { transform: scale(1); opacity: 1; }
+      background: var(--mint-strong);
+      box-shadow: 0 0 0 5px rgba(153, 221, 204, 0.28);
     }
 
     .hero h1 {
-      margin: 18px 0 0;
-      font-size: clamp(36px, 7.4vw, 68px);
-      line-height: 1.02;
-      letter-spacing: -0.055em;
-      font-weight: 760;
+      margin: 20px 0 0;
+      font-size: clamp(52px, 11vw, 102px);
+      line-height: 0.92;
+      letter-spacing: -0.07em;
+      font-weight: 800;
+      color: var(--ink);
     }
 
-    .hero h1 em {
-      color: var(--accent);
-      font-style: normal;
+    .hero h1 .accent {
+      display: inline-block;
+      position: relative;
+      color: var(--ink);
+      z-index: 0;
+    }
+
+    .hero h1 .accent::after {
+      content: "";
+      position: absolute;
+      left: -0.02em;
+      right: -0.04em;
+      bottom: 0.06em;
+      height: 0.22em;
+      border-radius: 999px;
+      background: var(--mint);
+      z-index: -1;
     }
 
     .lede {
-      max-width: 650px;
-      margin: 22px 0 0;
+      max-width: 690px;
+      margin: 24px 0 0;
       color: var(--muted);
-      font-size: clamp(14px, 2.8vw, 16px);
-      line-height: 1.75;
+      font-size: clamp(14px, 2.7vw, 16px);
+      line-height: 1.8;
     }
 
     .panel {
       margin: 14px 0;
-      padding: clamp(18px, 3.6vw, 28px);
+      padding: clamp(18px, 3.6vw, 30px);
       border: 1px solid var(--line);
       border-radius: var(--radius);
       background:
-        linear-gradient(145deg, rgba(255, 255, 255, 0.025), transparent 42%),
-        var(--panel);
-      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
+        linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.62)),
+        var(--surface);
+      box-shadow: var(--shadow);
     }
 
     .panel-head {
@@ -140,29 +147,29 @@
 
     .panel h2 {
       margin: 0;
-      font-size: 15px;
-      letter-spacing: 0.02em;
+      font-size: 16px;
+      letter-spacing: -0.01em;
     }
 
     .panel-head p {
       margin: 7px 0 0;
       color: var(--muted);
       font-size: 12.5px;
-      line-height: 1.55;
+      line-height: 1.65;
     }
 
     .badge {
       flex: none;
       display: inline-flex;
       align-items: center;
-      height: 28px;
-      padding: 0 11px;
+      height: 29px;
+      padding: 0 12px;
       border: 1px solid var(--line);
       border-radius: 999px;
-      color: var(--muted);
+      color: var(--ink-soft);
+      background: var(--surface-soft);
       font-size: 11px;
       font-variant-numeric: tabular-nums;
-      background: rgba(255, 255, 255, 0.03);
     }
 
     .dropzone {
@@ -173,205 +180,374 @@
       justify-content: center;
       flex-direction: column;
       gap: 7px;
-      border: 1px dashed rgba(255, 255, 255, 0.18);
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.018);
+      border: 1.5px dashed rgba(103, 191, 174, 0.58);
+      border-radius: 20px;
+      background: rgba(234, 249, 244, 0.55);
       text-align: center;
       cursor: pointer;
       transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
     }
 
-    .dropzone:hover,
-    .dropzone.drag {
-      border-color: rgba(255, 138, 61, 0.64);
-      background: rgba(255, 138, 61, 0.055);
+    .dropzone:hover, .dropzone.drag {
+      border-color: var(--mint-strong);
+      background: var(--mint-soft);
     }
 
     .dropzone.drag { transform: scale(1.006); }
-    .dropzone.is-busy { opacity: 0.62; pointer-events: none; }
-    .dropzone.is-full { opacity: 0.42; pointer-events: none; }
+    .dropzone.is-busy { opacity: 0.6; pointer-events: none; }
+    .dropzone.is-full { opacity: 0.45; pointer-events: none; }
 
     .dropzone .plus {
       display: grid;
       place-items: center;
-      width: 34px;
-      height: 34px;
-      margin-bottom: 4px;
-      border: 1px solid rgba(255, 138, 61, 0.42);
+      width: 36px;
+      height: 36px;
+      margin-bottom: 3px;
       border-radius: 50%;
-      color: var(--accent);
-      font-size: 22px;
+      color: var(--ink);
+      background: var(--mint);
+      font-size: 23px;
       line-height: 1;
+      box-shadow: 0 7px 18px rgba(103, 191, 174, 0.28);
     }
 
-    .drop-title { font-size: 14px; font-weight: 650; }
+    .drop-title { font-size: 14px; font-weight: 750; }
     .drop-sub { color: var(--muted); font-size: 11.5px; line-height: 1.55; }
 
-    .empty-hint {
-      margin: 14px 2px 2px;
-      color: #666e7d;
-      font-size: 12px;
-    }
+    .empty-hint { margin: 14px 2px 2px; color: #95a3a3; font-size: 12px; }
 
-    .cards {
-      display: grid;
-      gap: 12px;
-      margin-top: 16px;
-    }
+    .cards { display: grid; gap: 13px; margin-top: 16px; }
 
     .target-card {
-      position: relative;
-      display: grid;
-      grid-template-columns: 98px minmax(0, 1fr);
-      gap: 14px;
-      padding: 13px;
+      padding: 14px;
       border: 1px solid var(--line);
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.022);
-      animation: card-in 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+      border-radius: 20px;
+      background: var(--surface-soft);
+      animation: card-in 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both;
     }
 
     @keyframes card-in {
-      from { opacity: 0; transform: translateY(8px); }
+      from { opacity: 0; transform: translateY(7px); }
       to { opacity: 1; transform: translateY(0); }
+    }
+
+    .target-top {
+      display: grid;
+      grid-template-columns: 88px minmax(0, 1fr) 28px;
+      gap: 13px;
+      align-items: start;
     }
 
     .thumb {
       position: relative;
-      width: 98px;
-      height: 98px;
+      width: 88px;
+      height: 88px;
       overflow: hidden;
-      border-radius: 13px;
-      background: #1a1e26;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      background: var(--blue-soft);
+      box-shadow: inset 0 0 0 1px var(--line);
     }
 
-    .thumb img {
-      width: 100%;
-      height: 100%;
-      display: block;
-      object-fit: cover;
-    }
+    .thumb img { width: 100%; height: 100%; display: block; object-fit: cover; }
 
     .thumb-index {
       position: absolute;
       left: 7px;
       bottom: 7px;
-      min-width: 25px;
+      min-width: 26px;
       padding: 4px 6px;
       border-radius: 7px;
       color: #fff;
-      background: rgba(5, 6, 9, 0.72);
+      background: rgba(31, 47, 47, 0.72);
       font-size: 10px;
-      font-weight: 700;
+      font-weight: 750;
       letter-spacing: 0.08em;
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
     }
 
-    .fields {
-      display: grid;
-      gap: 10px;
-      min-width: 0;
-      padding-right: 22px;
-    }
+    .target-fields { display: grid; gap: 9px; min-width: 0; }
 
     .field { display: grid; gap: 5px; min-width: 0; }
 
     .field > span {
-      color: #7d8594;
-      font-size: 10.5px;
-      font-weight: 650;
-      letter-spacing: 0.1em;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 750;
+      letter-spacing: 0.08em;
     }
 
-    .field input,
-    .field textarea {
+    .field input, .field textarea, .field select {
       width: 100%;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 10px;
-      color: var(--text);
-      background: rgba(5, 7, 10, 0.48);
-      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      color: var(--ink);
+      background: #fff;
+      padding: 10px 11px;
       font-size: 13px;
       line-height: 1.5;
       outline: none;
-      transition: border-color 0.16s ease, background 0.16s ease;
+      transition: border-color 0.16s ease, box-shadow 0.16s ease;
     }
 
-    .field input:focus,
-    .field textarea:focus {
-      border-color: rgba(255, 138, 61, 0.62);
-      background: rgba(5, 7, 10, 0.72);
+    .field input:focus, .field textarea:focus, .field select:focus {
+      border-color: var(--mint-strong);
+      box-shadow: 0 0 0 3px rgba(153, 221, 204, 0.22);
     }
 
-    .field textarea {
-      min-height: 82px;
-      resize: vertical;
-    }
+    .field textarea { min-height: 94px; resize: vertical; }
+    .field select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%; background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; padding-right: 32px; }
 
     .remove-btn {
-      position: absolute;
-      top: 9px;
-      right: 9px;
-      width: 26px;
-      height: 26px;
+      width: 28px;
+      height: 28px;
       display: grid;
       place-items: center;
       border: 1px solid transparent;
       border-radius: 50%;
-      color: #737b89;
+      color: #8a9999;
       background: transparent;
-      font-size: 18px;
+      font-size: 19px;
       line-height: 1;
       cursor: pointer;
-      transition: all 0.16s ease;
     }
 
-    .remove-btn:hover {
-      color: var(--danger);
-      border-color: rgba(255, 119, 112, 0.24);
-      background: rgba(255, 119, 112, 0.08);
-    }
+    .remove-btn:hover { color: var(--danger); border-color: rgba(217, 94, 94, 0.22); background: var(--blush-soft); }
 
-    .concept-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .concept-grid > div {
-      padding: 15px;
+    .content-editor {
+      margin-top: 12px;
+      padding: 12px;
       border: 1px solid var(--line);
       border-radius: 15px;
-      background: rgba(255, 255, 255, 0.018);
+      background: #fff;
     }
 
-    .concept-grid span {
-      display: block;
-      color: #6c7482;
-      font-size: 10px;
-      letter-spacing: 0.14em;
-      font-weight: 650;
-    }
-
-    .concept-grid strong {
-      display: block;
-      margin: 8px 0 5px;
-      font-size: 16px;
-    }
-
-    .concept-grid p {
-      margin: 0;
+    .editor-note {
+      margin: 8px 0 0;
       color: var(--muted);
-      font-size: 11.5px;
+      font-size: 10.5px;
+      line-height: 1.6;
+    }
+
+    .file-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+    .file-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 0 14px;
+      border: 1px solid rgba(103, 191, 174, 0.35);
+      border-radius: 10px;
+      color: var(--ink);
+      background: var(--mint-soft);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .file-btn:hover { background: #def5ee; }
+    .file-name { color: var(--muted); font-size: 11px; overflow-wrap: anywhere; }
+
+    .content-preview {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .content-preview img {
+      width: 96px;
+      height: 62px;
+      object-fit: cover;
+      display: block;
+      border-radius: 9px;
+      border: 1px solid var(--line);
+      background: var(--blue-soft);
+    }
+
+    .file-icon {
+      display: grid;
+      place-items: center;
+      width: 54px;
+      height: 54px;
+      border-radius: 12px;
+      color: var(--ink);
+      background: var(--blush);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+    }
+
+    /* ============================== SETTINGS ============================== */
+    .settings-grid {
+      display: grid;
+      grid-template-columns: 290px minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .diagram-wrap { min-width: 0; }
+
+    .diagram {
+      position: relative;
+      height: 210px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background:
+        linear-gradient(135deg, rgba(186, 215, 223, 0.2), rgba(255, 226, 226, 0.23)),
+        #fff;
+    }
+
+    .diagram::before {
+      content: "";
+      position: absolute;
+      inset: 18px;
+      border: 1px dashed rgba(31, 47, 47, 0.12);
+      border-radius: 14px;
+    }
+
+    .diagram-card {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 122px;
+      height: 77px;
+      transform: translate(-50%, -50%);
+      border: 2px solid var(--blue);
+      border-radius: 11px;
+      background: var(--blue-soft);
+      box-shadow: 0 8px 20px rgba(57, 84, 84, 0.1);
+      display: grid;
+      place-items: center;
+      color: var(--ink-soft);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+    }
+
+    .diagram-content {
+      position: absolute;
+      width: 96px;
+      height: 54px;
+      transform: translate(-50%, -50%);
+      border: 2px solid var(--mint-strong);
+      border-radius: 9px;
+      background: var(--mint);
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      box-shadow: 0 8px 18px rgba(103, 191, 174, 0.18);
+    }
+
+    .diagram-content.overlap {
+      border-color: var(--danger);
+      background: var(--blush);
+      box-shadow: 0 8px 18px rgba(217, 94, 94, 0.15);
+    }
+
+    .diagram-caption {
+      margin: 9px 2px 0;
+      color: var(--muted);
+      font-size: 10.5px;
+      line-height: 1.6;
+    }
+
+    .diagram-caption strong { color: var(--ink-soft); }
+
+    .placement-controls { display: grid; gap: 14px; }
+
+    .control-block { display: grid; gap: 7px; }
+    .control-label { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--ink-soft); font-size: 11px; font-weight: 750; }
+    .control-label output { color: var(--muted); font-size: 10.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+    .segmented {
+      display: flex;
+      gap: 5px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface-soft);
+    }
+
+    .segmented button {
+      flex: 1;
+      min-height: 34px;
+      padding: 0 8px;
+      border: 0;
+      border-radius: 8px;
+      color: var(--muted);
+      background: transparent;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    .segmented button.active {
+      color: var(--ink);
+      background: var(--mint);
+      box-shadow: 0 5px 14px rgba(103, 191, 174, 0.2);
+    }
+
+    .range {
+      width: 100%;
+      height: 22px;
+      margin: 0;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .range::-webkit-slider-runnable-track { height: 5px; border-radius: 999px; background: var(--blue); }
+    .range::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; margin-top: -6.5px; border: 3px solid #fff; border-radius: 50%; background: var(--mint-strong); box-shadow: 0 2px 8px rgba(57, 84, 84, 0.25); }
+    .range::-moz-range-track { height: 5px; border-radius: 999px; background: var(--blue); }
+    .range::-moz-range-thumb { width: 14px; height: 14px; border: 3px solid #fff; border-radius: 50%; background: var(--mint-strong); }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .select-wide {
+      width: 100%;
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      color: var(--ink);
+      background: #fff;
+      padding: 0 11px;
+      font-size: 12px;
+    }
+
+    .control-help { margin: 0; color: var(--muted); font-size: 10.5px; line-height: 1.6; }
+
+    .overlap-hint {
+      margin: 0;
+      padding: 9px 11px;
+      border-radius: 10px;
+      color: #8e4b4b;
+      background: var(--blush);
+      font-size: 10.5px;
       line-height: 1.55;
     }
 
+    .panel-note {
+      margin: 13px 0 0;
+      padding: 10px 12px;
+      border-radius: 11px;
+      color: var(--ink-soft);
+      background: var(--blue-soft);
+      font-size: 10.5px;
+      line-height: 1.6;
+    }
+
+    /* ============================== ACTION ============================== */
     .action-bar {
       position: sticky;
       bottom: max(10px, env(safe-area-inset-bottom));
-      z-index: 4;
+      z-index: 5;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -379,18 +555,14 @@
       margin: 30px 0 12px;
       padding: 11px 12px 11px 17px;
       border: 1px solid var(--line-strong);
-      border-radius: 19px;
-      background: rgba(9, 11, 15, 0.84);
-      box-shadow: 0 20px 55px rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.86);
+      box-shadow: 0 18px 50px rgba(57, 84, 84, 0.18);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
     }
 
-    .action-note {
-      color: var(--muted);
-      font-size: 11.5px;
-      line-height: 1.45;
-    }
+    .action-note { color: var(--muted); font-size: 11.5px; line-height: 1.45; }
 
     .primary-btn {
       flex: none;
@@ -398,42 +570,42 @@
       align-items: center;
       justify-content: center;
       gap: 18px;
-      min-width: 214px;
+      min-width: 226px;
       min-height: 54px;
-      padding: 0 21px;
+      padding: 0 22px;
       border: 0;
-      border-radius: 14px;
-      color: #17100b;
-      background: linear-gradient(135deg, var(--accent-2), var(--accent));
+      border-radius: 15px;
+      color: var(--ink);
+      background: linear-gradient(135deg, #b9eadf, var(--mint));
       font-size: 14px;
-      font-weight: 750;
+      font-weight: 800;
       cursor: pointer;
-      box-shadow: 0 12px 34px rgba(255, 138, 61, 0.24);
+      box-shadow: 0 12px 30px rgba(103, 191, 174, 0.26);
       transition: transform 0.16s ease, filter 0.16s ease, opacity 0.16s ease;
     }
 
-    .primary-btn:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.035); }
+    .primary-btn:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.025); }
     .primary-btn:active:not(:disabled) { transform: translateY(0) scale(0.99); }
-    .primary-btn:disabled { opacity: 0.32; cursor: not-allowed; box-shadow: none; }
+    .primary-btn:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
     .primary-btn .arrow { font-size: 19px; line-height: 1; }
 
-    .foot {
-      padding: 2px 4px 0;
-      color: #59606d;
+    .foot { padding: 2px 4px 0; color: #93a0a0; font-size: 10.5px; line-height: 1.6; text-align: center; }
+
+    .foot .link-btn {
+      margin-left: 8px;
+      padding: 0;
+      border: 0;
+      color: #7d8b8b;
+      background: transparent;
       font-size: 10.5px;
-      line-height: 1.6;
-      text-align: center;
+      text-decoration: underline;
+      cursor: pointer;
     }
 
-    /* ------------------------------------------------------------------
-       AR SCENE + HUD
-    ------------------------------------------------------------------ */
-    #arRoot {
-      position: fixed;
-      inset: 0;
-      overflow: hidden;
-      touch-action: none;
-    }
+    .foot .link-btn:hover { color: var(--ink); }
+
+    /* ============================== AR ============================== */
+    #arRoot { position: fixed; inset: 0; overflow: hidden; touch-action: none; }
 
     #arRoot a-scene {
       position: absolute !important;
@@ -443,10 +615,7 @@
       display: block !important;
     }
 
-    #arRoot canvas.a-canvas {
-      width: 100% !important;
-      height: 100% !important;
-    }
+    #arRoot canvas.a-canvas { width: 100% !important; height: 100% !important; }
 
     #arHud {
       position: fixed;
@@ -456,16 +625,16 @@
       flex-direction: column;
       justify-content: space-between;
       pointer-events: none;
-      color: var(--text);
+      color: var(--ink);
       background:
-        linear-gradient(to bottom, rgba(2, 3, 5, 0.58), transparent 21%),
-        linear-gradient(to top, rgba(2, 3, 5, 0.62), transparent 24%);
+        linear-gradient(to bottom, rgba(246, 246, 246, 0.72), rgba(246, 246, 246, 0) 22%),
+        linear-gradient(to top, rgba(246, 246, 246, 0.56), rgba(246, 246, 246, 0) 26%);
     }
 
     .hud-top {
       display: flex;
       align-items: flex-start;
-      gap: 12px;
+      gap: 10px;
       padding: max(14px, env(safe-area-inset-top)) 14px 0;
     }
 
@@ -477,45 +646,39 @@
       gap: 7px;
       min-height: 42px;
       padding: 0 14px 0 11px;
-      border: 1px solid rgba(255, 255, 255, 0.16);
+      border: 1px solid rgba(31, 47, 47, 0.13);
       border-radius: 999px;
-      color: var(--text);
-      background: rgba(9, 11, 16, 0.54);
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.88);
       font-size: 12px;
-      font-weight: 650;
+      font-weight: 750;
       cursor: pointer;
+      box-shadow: 0 8px 24px rgba(57, 84, 84, 0.12);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
     }
 
-    .icon-btn:hover { background: rgba(20, 24, 32, 0.72); }
-
-    .hud-title {
-      min-width: 0;
-      flex: 1;
-      padding-top: 1px;
-      text-align: center;
-    }
+    .hud-title { min-width: 0; flex: 1; padding-top: 1px; text-align: center; }
 
     .hud-title span {
       display: block;
-      color: rgba(255, 255, 255, 0.46);
+      color: rgba(31, 47, 47, 0.5);
       font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 0.23em;
+      font-weight: 800;
+      letter-spacing: 0.22em;
     }
 
     .hud-title strong {
       display: block;
-      margin-top: 5px;
+      margin-top: 4px;
       overflow: hidden;
-      color: #fff8ef;
+      color: var(--ink);
       font-size: 14px;
-      font-weight: 650;
+      font-weight: 750;
       line-height: 1.35;
       white-space: nowrap;
       text-overflow: ellipsis;
-      text-shadow: 0 1px 16px rgba(0, 0, 0, 0.45);
+      text-shadow: 0 1px 12px rgba(255, 255, 255, 0.8);
     }
 
     .mode-pill {
@@ -525,13 +688,14 @@
       gap: 7px;
       min-height: 32px;
       padding: 0 10px;
-      border: 1px solid rgba(255, 255, 255, 0.13);
+      border: 1px solid rgba(31, 47, 47, 0.12);
       border-radius: 999px;
-      color: rgba(255, 255, 255, 0.66);
-      background: rgba(9, 11, 16, 0.48);
+      color: var(--ink-soft);
+      background: rgba(255, 255, 255, 0.86);
       font-size: 10px;
-      font-weight: 650;
-      letter-spacing: 0.05em;
+      font-weight: 750;
+      letter-spacing: 0.04em;
+      box-shadow: 0 8px 24px rgba(57, 84, 84, 0.1);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
     }
@@ -541,73 +705,69 @@
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background: var(--accent);
-      box-shadow: 0 0 12px rgba(255, 138, 61, 0.8);
+      background: var(--mint-strong);
+      box-shadow: 0 0 10px rgba(103, 191, 174, 0.9);
     }
 
-    .mode-pill.ok {
-      color: var(--good);
-      border-color: rgba(109, 226, 165, 0.24);
-      background: rgba(13, 32, 24, 0.5);
-    }
-
-    .mode-pill.ok::before {
-      background: var(--good);
-      box-shadow: 0 0 12px rgba(109, 226, 165, 0.8);
-    }
+    .mode-pill.ok { color: #276353; border-color: rgba(103, 191, 174, 0.28); background: var(--mint-soft); }
+    .mode-pill.ok::before { background: var(--mint-strong); }
 
     .scan-guide {
       position: absolute;
       top: 46%;
       left: 50%;
-      width: min(62vw, 270px);
-      aspect-ratio: 1 / 1;
+      width: min(68vw, 316px);
+      aspect-ratio: 85.6 / 54;
       transform: translate(-50%, -50%);
       opacity: 1;
       transition: opacity 0.3s ease, transform 0.3s ease;
     }
 
-    .scan-guide.is-hidden {
-      opacity: 0;
-      transform: translate(-50%, -50%) scale(0.9);
-    }
+    .scan-guide.is-hidden { opacity: 0; transform: translate(-50%, -50%) scale(0.92); }
 
     .scan-guide::before {
       content: "";
       position: absolute;
       inset: 0;
-      border: 1px dashed rgba(255, 255, 255, 0.24);
-      border-radius: 26px;
-      background: rgba(255, 255, 255, 0.015);
+      border: 1px dashed rgba(255, 255, 255, 0.68);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.035);
+      box-shadow: 0 0 0 1px rgba(31, 47, 47, 0.12) inset;
     }
 
     .guide-corner {
       position: absolute;
-      width: 34px;
-      height: 34px;
-      border-color: rgba(255, 196, 107, 0.88);
+      width: 36px;
+      height: 36px;
+      border-color: var(--mint);
       border-style: solid;
-      filter: drop-shadow(0 0 12px rgba(255, 138, 61, 0.36));
+      filter: drop-shadow(0 0 10px rgba(103, 191, 174, 0.6));
     }
 
-    .guide-corner.tl { top: -2px; left: -2px; border-width: 2px 0 0 2px; border-radius: 16px 0 0 0; }
-    .guide-corner.tr { top: -2px; right: -2px; border-width: 2px 2px 0 0; border-radius: 0 16px 0 0; }
-    .guide-corner.bl { bottom: -2px; left: -2px; border-width: 0 0 2px 2px; border-radius: 0 0 0 16px; }
-    .guide-corner.br { bottom: -2px; right: -2px; border-width: 0 2px 2px 0; border-radius: 0 0 16px 0; }
+    .guide-corner.tl { top: -2px; left: -2px; border-width: 3px 0 0 3px; border-radius: 15px 0 0 0; }
+    .guide-corner.tr { top: -2px; right: -2px; border-width: 3px 3px 0 0; border-radius: 0 15px 0 0; }
+    .guide-corner.bl { bottom: -2px; left: -2px; border-width: 0 0 3px 3px; border-radius: 0 0 0 15px; }
+    .guide-corner.br { bottom: -2px; right: -2px; border-width: 0 3px 3px 0; border-radius: 0 0 15px 0; }
 
     .scan-guide p {
       position: absolute;
-      top: calc(100% + 18px);
+      top: calc(100% + 15px);
       left: 50%;
       width: max-content;
-      max-width: 80vw;
+      max-width: 86vw;
       margin: 0;
       transform: translateX(-50%);
-      color: rgba(255, 255, 255, 0.7);
-      font-size: 12px;
-      letter-spacing: 0.04em;
+      padding: 8px 13px;
+      border-radius: 999px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: 0 9px 28px rgba(57, 84, 84, 0.14);
+      font-size: 11px;
+      font-weight: 650;
+      line-height: 1.4;
       text-align: center;
-      text-shadow: 0 1px 12px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
 
     .hud-bottom {
@@ -616,16 +776,12 @@
       align-items: center;
       gap: 12px;
       padding: 0 16px max(20px, env(safe-area-inset-bottom));
+      transition: opacity 0.2s ease;
     }
 
-    .dots {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-      min-height: 24px;
-      pointer-events: auto;
-    }
+    body.panel-open .hud-bottom { opacity: 0; pointer-events: none; }
+
+    .dots { display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 24px; pointer-events: auto; }
 
     .dot {
       width: 7px;
@@ -633,37 +789,157 @@
       padding: 0;
       border: 0;
       border-radius: 999px;
-      background: rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.72);
+      box-shadow: 0 1px 4px rgba(31, 47, 47, 0.18);
       cursor: pointer;
       transition: width 0.24s ease, background 0.24s ease, opacity 0.24s ease;
     }
 
-    .dot.active {
-      width: 24px;
-      background: var(--accent-2);
-      box-shadow: 0 0 16px rgba(255, 196, 107, 0.5);
-    }
-
+    .dot.active { width: 25px; background: var(--mint-strong); }
     .dot:disabled { cursor: default; opacity: 0.55; }
 
     .hud-meta {
       display: flex;
       align-items: center;
-      gap: 12px;
-      min-height: 17px;
-      color: rgba(255, 255, 255, 0.54);
+      gap: 10px;
+      min-height: 30px;
+      padding: 0 12px;
+      border-radius: 999px;
+      color: var(--ink-soft);
+      background: rgba(255, 255, 255, 0.84);
+      box-shadow: 0 8px 24px rgba(57, 84, 84, 0.1);
       font-size: 10px;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.06em;
       font-variant-numeric: tabular-nums;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
 
-    .hud-meta .sep { width: 1px; height: 10px; background: rgba(255, 255, 255, 0.18); }
+    .hud-meta .sep { width: 1px; height: 10px; background: var(--line-strong); }
 
-    #swipeHint { transition: opacity 0.2s ease; }
+    .video-sound-btn, .panel-open-btn {
+      position: fixed;
+      right: 16px;
+      bottom: max(94px, calc(env(safe-area-inset-bottom) + 80px));
+      z-index: 32;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 0 14px;
+      border: 1px solid rgba(31, 47, 47, 0.13);
+      border-radius: 999px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 9px 28px rgba(57, 84, 84, 0.14);
+      font-size: 11px;
+      font-weight: 750;
+      cursor: pointer;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
 
-    /* ------------------------------------------------------------------
-       OVERLAYS
-    ------------------------------------------------------------------ */
+    /* ============================== CONTENT PANEL ============================== */
+    #contentPanel {
+      position: fixed;
+      left: 50%;
+      bottom: 0;
+      z-index: 50;
+      width: min(100%, 760px);
+      height: min(48vh, 430px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-top: 1px solid var(--line);
+      border-radius: 26px 26px 0 0;
+      background: var(--bg);
+      box-shadow: 0 -24px 70px rgba(31, 47, 47, 0.22);
+      padding-bottom: env(safe-area-inset-bottom);
+      transform: translate(-50%, calc(100% + 24px));
+      transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+      touch-action: auto;
+    }
+
+    #contentPanel.open { transform: translate(-50%, 0); }
+
+    .content-panel-head {
+      flex: none;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 58px;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.74);
+    }
+
+    .panel-arrow {
+      flex: none;
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      color: var(--ink);
+      background: #fff;
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .panel-arrow:disabled { opacity: 0.35; cursor: default; }
+
+    .panel-title-wrap { min-width: 0; flex: 1; padding: 0 3px; }
+    .panel-title-wrap span { display: block; color: var(--muted); font-size: 9px; font-weight: 750; letter-spacing: 0.12em; }
+    .panel-title-wrap strong { display: block; margin-top: 3px; overflow: hidden; color: var(--ink); font-size: 13px; font-weight: 750; white-space: nowrap; text-overflow: ellipsis; }
+
+    .panel-link, .panel-close {
+      flex: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--ink-soft);
+      background: #fff;
+      font-size: 10.5px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .panel-link:hover, .panel-close:hover { background: var(--mint-soft); }
+
+    #panelBody {
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    #panelBody iframe, #panelBody video, #panelBody object {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #fff;
+    }
+
+    .panel-empty {
+      height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+      text-align: center;
+    }
+
+    /* ============================== OVERLAYS ============================== */
     .overlay {
       position: fixed;
       inset: 0;
@@ -671,7 +947,7 @@
       display: grid;
       place-items: center;
       padding: 22px;
-      background: rgba(3, 4, 6, 0.78);
+      background: rgba(246, 246, 246, 0.76);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
     }
@@ -679,10 +955,10 @@
     .compile-card {
       width: min(100%, 390px);
       padding: 30px 28px 24px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 24px;
-      background: linear-gradient(145deg, rgba(255, 255, 255, 0.045), transparent 45%), #10131a;
-      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.55);
+      border: 1px solid var(--line);
+      border-radius: 25px;
+      background: #fff;
+      box-shadow: 0 30px 90px rgba(31, 47, 47, 0.18);
       text-align: center;
     }
 
@@ -691,89 +967,49 @@
       width: 54px;
       height: 54px;
       margin: 0 auto 20px;
-      border: 1px solid rgba(255, 255, 255, 0.11);
-      border-radius: 50%;
-    }
-
-    .compile-orbit::before,
-    .compile-orbit::after {
-      content: "";
-      position: absolute;
+      border: 1px solid var(--line);
       border-radius: 50%;
     }
 
     .compile-orbit::before {
+      content: "";
+      position: absolute;
       inset: 6px;
       border: 1px solid transparent;
-      border-top-color: var(--accent);
-      border-right-color: rgba(255, 138, 61, 0.3);
+      border-top-color: var(--mint-strong);
+      border-right-color: rgba(103, 191, 174, 0.3);
+      border-radius: 50%;
       animation: spin 1.1s linear infinite;
     }
 
     .compile-orbit::after {
+      content: "";
+      position: absolute;
       inset: 20px;
-      background: var(--accent);
-      box-shadow: 0 0 22px rgba(255, 138, 61, 0.72);
+      border-radius: 50%;
+      background: var(--mint);
+      box-shadow: 0 0 22px rgba(103, 191, 174, 0.65);
     }
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .compile-kicker {
-      color: var(--accent-2);
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 0.24em;
-    }
+    .compile-kicker { color: var(--mint-strong); font-size: 9px; font-weight: 800; letter-spacing: 0.22em; }
+    .compile-card h2 { margin: 10px 0 0; font-size: 20px; letter-spacing: -0.02em; }
+    .compile-card p { margin: 9px 0 0; color: var(--muted); font-size: 11.5px; line-height: 1.6; }
 
-    .compile-card h2 {
-      margin: 10px 0 0;
-      font-size: 20px;
-      letter-spacing: -0.02em;
-    }
-
-    .compile-card p {
-      margin: 9px 0 0;
-      color: var(--muted);
-      font-size: 11.5px;
-      line-height: 1.6;
-    }
-
-    .progress {
-      height: 5px;
-      margin-top: 24px;
-      overflow: hidden;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.08);
-    }
-
-    #progressBar {
-      width: 0%;
-      height: 100%;
-      border-radius: inherit;
-      background: linear-gradient(90deg, var(--accent), var(--accent-2));
-      box-shadow: 0 0 18px rgba(255, 138, 61, 0.46);
-      transition: width 0.2s ease;
-    }
-
-    .compile-meta {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 9px;
-      color: #666e7d;
-      font-size: 9.5px;
-      letter-spacing: 0.06em;
-      font-variant-numeric: tabular-nums;
-    }
+    .progress { height: 5px; margin-top: 24px; overflow: hidden; border-radius: 999px; background: var(--blue-soft); }
+    #progressBar { width: 0%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--mint-strong), var(--mint)); box-shadow: 0 0 18px rgba(103, 191, 174, 0.38); transition: width 0.2s ease; }
+    .compile-meta { display: flex; justify-content: space-between; margin-top: 9px; color: #9aa7a7; font-size: 9.5px; letter-spacing: 0.05em; font-variant-numeric: tabular-nums; }
 
     .error-panel {
       pointer-events: auto;
       position: absolute;
       inset: 0;
-      z-index: 40;
+      z-index: 55;
       display: grid;
       place-items: center;
       padding: 22px;
-      background: rgba(3, 4, 6, 0.72);
+      background: rgba(246, 246, 246, 0.76);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
     }
@@ -781,50 +1017,17 @@
     .error-card {
       width: min(100%, 390px);
       padding: 28px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 23px;
-      background: #11141b;
-      box-shadow: 0 28px 80px rgba(0, 0, 0, 0.55);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: #fff;
+      box-shadow: 0 28px 80px rgba(31, 47, 47, 0.16);
       text-align: center;
     }
 
-    .error-icon {
-      display: grid;
-      place-items: center;
-      width: 44px;
-      height: 44px;
-      margin: 0 auto 15px;
-      border: 1px solid rgba(255, 119, 112, 0.38);
-      border-radius: 50%;
-      color: var(--danger);
-      background: rgba(255, 119, 112, 0.08);
-      font-size: 20px;
-      font-weight: 750;
-    }
-
+    .error-icon { display: grid; place-items: center; width: 44px; height: 44px; margin: 0 auto 15px; border: 1px solid rgba(217, 94, 94, 0.3); border-radius: 50%; color: var(--danger); background: var(--blush-soft); font-size: 20px; font-weight: 800; }
     .error-card h2 { margin: 0; font-size: 19px; }
-    .error-card p {
-      margin: 11px 0 0;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.7;
-      text-align: left;
-    }
-
-    .error-card button {
-      width: 100%;
-      min-height: 46px;
-      margin-top: 20px;
-      border: 1px solid var(--line-strong);
-      border-radius: 12px;
-      color: var(--text);
-      background: rgba(255, 255, 255, 0.06);
-      font-size: 13px;
-      font-weight: 650;
-      cursor: pointer;
-    }
-
-    .error-card button:hover { background: rgba(255, 255, 255, 0.1); }
+    .error-card p { margin: 11px 0 0; color: var(--muted); font-size: 12px; line-height: 1.7; text-align: left; }
+    .error-card button { width: 100%; min-height: 46px; margin-top: 20px; border: 1px solid var(--line-strong); border-radius: 12px; color: var(--ink); background: var(--mint-soft); font-size: 13px; font-weight: 750; cursor: pointer; }
 
     .toast {
       position: fixed;
@@ -835,11 +1038,11 @@
       max-width: min(88vw, 520px);
       padding: 11px 15px;
       transform: translate(-50%, 8px);
-      border: 1px solid rgba(255, 255, 255, 0.13);
-      border-radius: 12px;
-      color: #fff8ee;
-      background: rgba(18, 21, 28, 0.94);
-      box-shadow: 0 16px 44px rgba(0, 0, 0, 0.45);
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 16px 44px rgba(31, 47, 47, 0.16);
       font-size: 12px;
       line-height: 1.5;
       text-align: center;
@@ -850,17 +1053,17 @@
       -webkit-backdrop-filter: blur(12px);
     }
 
-    .toast.show {
-      opacity: 1;
-      transform: translate(-50%, 0);
-    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-    @media (max-width: 600px) {
-      .target-card { grid-template-columns: 78px minmax(0, 1fr); gap: 11px; padding: 11px; }
-      .thumb { width: 78px; height: 78px; border-radius: 11px; }
-      .field textarea { min-height: 72px; }
-      .concept-grid { grid-template-columns: 1fr; }
+    @media (max-width: 680px) {
+      .target-top { grid-template-columns: 74px minmax(0, 1fr) 28px; gap: 10px; }
+      .thumb { width: 74px; height: 74px; }
+      .settings-grid { grid-template-columns: 1fr; }
+      .diagram { height: 190px; }
+      .two-col { grid-template-columns: 1fr; }
       .action-bar {
+        position: static;
+        bottom: auto;
         flex-direction: column;
         align-items: stretch;
         padding: 12px;
@@ -868,8 +1071,9 @@
       }
       .action-note { text-align: center; }
       .primary-btn { width: 100%; }
-      .scan-guide { top: 45%; width: min(68vw, 250px); }
-      .mode-pill { padding: 0 9px; }
+      .content-panel-head { gap: 5px; padding: 8px 9px; }
+      .panel-link { padding: 0 8px; }
+      #contentPanel { height: min(50vh, 430px); }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -880,26 +1084,26 @@
       }
     }
   </style>
-  <!-- A-Frame 1.5.0：放在 head 里，确保动态创建 <a-scene> 前 A-Frame 已完成注册。 -->
+  <!-- A-Frame 1.5.0：放在 head 裡，確保動態建立 <a-scene> 前已完成註冊。 -->
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 </head>
 <body>
   <main id="setup">
     <div class="setup-inner">
       <header class="hero">
-        <div class="eyebrow"><span class="live-dot"></span> WEBAR · IMAGE TRIGGER</div>
-        <h1>把一张图，<br /><em>变成一张会出现的名片。</em></h1>
+        <div class="eyebrow"><span class="eyebrow-dot"></span> WEBAR · CARD CONTENT</div>
+        <h1><span class="accent">ID Card</span></h1>
         <p class="lede">
-          识别图只负责触发。扫描成功后，弧形画面显示的是你在下面填写的文字，和识别图本身长什么样无关。
-          橘色点点、马赛克块、卡套边缘图案，都可以成为触发器。
+          掃描卡蓋圖案，打開你預先放進來的內容。卡蓋滑到哪一格，就顯示哪一頁；
+          鎖定後也可以直接在手機上左右滑動切換。
         </p>
       </header>
 
       <section class="panel">
         <div class="panel-head">
           <div>
-            <h2>01 · 识别图</h2>
-            <p>最多 8 张。建议使用纹理丰富、对比明显的图片。</p>
+            <h2>01 · 卡蓋圖案與內容</h2>
+            <p>最多 8 張。這個順序就是卡蓋圖案 1、2、3…；掃到哪一張，就先顯示哪一頁。</p>
           </div>
           <span id="countBadge" class="badge">0 / 8</span>
         </div>
@@ -907,42 +1111,103 @@
         <label id="dropZone" class="dropzone" for="fileInput">
           <input id="fileInput" type="file" accept="image/*" multiple hidden />
           <span class="plus">+</span>
-          <span class="drop-title">选择或拍摄识别图</span>
-          <span class="drop-sub">JPG / PNG / WEBP · 浏览器本地编译，不上传服务器</span>
+          <span class="drop-title">選擇或拍攝卡蓋圖案</span>
+          <span class="drop-sub">JPG / PNG / WEBP · 建議只拍圖案本身，避免大面積背景</span>
         </label>
 
         <div id="cards" class="cards"></div>
-        <p id="emptyHint" class="empty-hint">还没有识别图。上传 1 张就能开始。</p>
+        <p id="emptyHint" class="empty-hint">還沒有卡蓋圖案。先上傳 1 張，再為它選一種內容。</p>
+        <p class="panel-note">編譯成功後，卡蓋圖案、內容與編譯結果會自動存在這台手機；重新整理可以繼續。換手機或無痕模式不會同步。</p>
       </section>
 
       <section class="panel">
         <div class="panel-head">
           <div>
-            <h2>02 · AR 内容</h2>
-            <p>每张图对应一页。扫到第几张，就先显示第几页；识别后也可以左右滑动浏览全部页面。</p>
+            <h2>02 · AR 顯示位置</h2>
+            <p>平面內容會出現在卡片周圍；預設在卡片上方、貼著卡面，不覆蓋卡片。</p>
           </div>
         </div>
-        <div class="concept-grid">
-          <div>
-            <span>识别图</span>
-            <strong>只是触发器</strong>
-            <p>它不被分析、不被展示，只用来告诉浏览器“现在该出现内容了”。</p>
+
+        <div class="settings-grid">
+          <div class="diagram-wrap">
+            <div id="diagram" class="diagram">
+              <div class="diagram-card">悠遊卡</div>
+              <div id="diagramContent" class="diagram-content">內容</div>
+            </div>
+            <p class="diagram-caption"><strong>示意圖</strong>：綠框是 AR 內容，藍框是 85.6 × 54 mm 卡片。拉到「正中」會蓋到卡片；若內容跑出畫面，先降低大小或把手機往後退。</p>
           </div>
-          <div>
-            <span>AR 画面</span>
-            <strong>你写的文字</strong>
-            <p>标题、正文和页码由 Canvas 实时绘制成 1024×512 的弧形纹理。</p>
+
+          <div class="placement-controls">
+            <div class="control-block">
+              <span class="control-label">位置</span>
+              <div class="segmented" id="positionGroup">
+                <button type="button" data-position="above" class="active">上方</button>
+                <button type="button" data-position="below">下方</button>
+                <button type="button" data-position="left">左側</button>
+                <button type="button" data-position="right">右側</button>
+                <button type="button" data-position="center">正中</button>
+              </div>
+            </div>
+
+            <div class="control-block">
+              <label class="control-label" for="gapRange">與卡片間距 <output id="gapValue">0.45 cm</output></label>
+              <input id="gapRange" class="range" type="range" min="0" max="2" step="0.05" value="0.45" />
+            </div>
+
+            <div class="two-col">
+              <div class="control-block">
+                <label class="control-label" for="offsetXRange">水平偏移 <output id="offsetXValue">0.0 cm</output></label>
+                <input id="offsetXRange" class="range" type="range" min="-4" max="4" step="0.1" value="0" />
+              </div>
+              <div class="control-block">
+                <label class="control-label" for="offsetYRange">垂直偏移 <output id="offsetYValue">0.0 cm</output></label>
+                <input id="offsetYRange" class="range" type="range" min="-4" max="4" step="0.1" value="0" />
+              </div>
+            </div>
+
+            <div class="control-block">
+              <label class="control-label" for="scaleRange">內容大小 <output id="scaleValue">100%</output></label>
+              <input id="scaleRange" class="range" type="range" min="0.4" max="1.6" step="0.05" value="1" />
+              <p class="control-help">如果內容超出螢幕，先降到 70～80%，或把手機往後退一點。</p>
+            </div>
+
+            <div class="control-block">
+              <span class="control-label">方向</span>
+              <div class="segmented" id="orientationGroup">
+                <button type="button" data-orientation="flat" class="active">平放（貼著卡面）</button>
+                <button type="button" data-orientation="billboard">立起（面向鏡頭）</button>
+              </div>
+            </div>
+
+            <div class="control-block">
+              <label class="control-label" for="stabilitySelect">追蹤穩定度</label>
+              <select id="stabilitySelect" class="select-wide">
+                <option value="stable">穩定（推薦，較平滑）</option>
+                <option value="balanced">平衡（預設值）</option>
+                <option value="responsive">靈敏（跟手，但可能較抖）</option>
+              </select>
+              <p class="control-help">如果 AR 內容一直抖動，先選「穩定」；如果覺得內容慢半拍，再往「靈敏」調。</p>
+            </div>
+
+            <p id="overlapHint" class="overlap-hint" hidden>目前的位置會覆蓋卡片。建議改成上方／下方，或把 X／Y 偏移調回 0。</p>
           </div>
         </div>
+
+        <p class="panel-note">
+          互動網頁、YouTube／Vimeo、PDF 會用「下方內容面板」開啟，不跟著卡片移動；平面文字、照片、上傳影片則會出現在卡片周圍。
+        </p>
       </section>
 
       <div class="action-bar">
-        <div class="action-note">编译在本机完成，首次可能需要十几秒。</div>
+        <div class="action-note">第一次編譯在手機上可能需要數秒；全部在本機完成，不會上傳你的卡面。</div>
         <button id="enterBtn" class="primary-btn" type="button" disabled>
-          <span>编译并进入 AR</span><span class="arrow">→</span>
+          <span>編譯並進入 AR</span><span class="arrow">→</span>
         </button>
       </div>
-      <footer class="foot">A-Frame 1.5.0 · MindAR 1.2.2 · 需要 HTTPS / localhost 摄像头权限</footer>
+      <footer class="foot">
+        A-Frame 1.5.0 · MindAR 1.2.2 · 需要 HTTPS / localhost 相機權限
+        <button id="clearSavedBtn" class="link-btn" type="button">清除本機紀錄</button>
+      </footer>
     </div>
   </main>
 
@@ -950,12 +1215,12 @@
 
   <div id="arHud" hidden>
     <div class="hud-top">
-      <button id="backBtn" class="icon-btn" type="button" aria-label="返回设置">← <span>返回</span></button>
+      <button id="backBtn" class="icon-btn" type="button" aria-label="返回設定">← <span>返回</span></button>
       <div class="hud-title">
-        <span>AR CARD</span>
-        <strong id="hudLabel">等待识别</strong>
+        <span>ID CARD</span>
+        <strong id="hudLabel">等待識別</strong>
       </div>
-      <span id="hudMode" class="mode-pill">扫描中</span>
+      <span id="hudMode" class="mode-pill">掃描中</span>
     </div>
 
     <div id="scanGuide" class="scan-guide">
@@ -963,49 +1228,64 @@
       <span class="guide-corner tr"></span>
       <span class="guide-corner bl"></span>
       <span class="guide-corner br"></span>
-      <p>将镜头对准你上传的识别图</p>
+      <p>將鏡頭對準卡蓋圖案，避免反光</p>
     </div>
 
     <div class="hud-bottom">
-      <div id="dots" class="dots" role="tablist" aria-label="AR 页面"></div>
+      <div id="dots" class="dots" role="tablist" aria-label="AR 頁面"></div>
       <div class="hud-meta">
         <span id="pageCounter">01 / 01</span>
         <span class="sep"></span>
-        <span id="swipeHint">左右滑动切换</span>
+        <span id="swipeHint">左右滑動切換</span>
       </div>
     </div>
 
     <div id="errorPanel" class="error-panel" hidden>
       <div class="error-card">
         <div class="error-icon">!</div>
-        <h2>摄像头没有启动</h2>
+        <h2>相機沒有啟動</h2>
         <p>
-          请确认：<br />
-          · 页面是通过 HTTPS 或 localhost 打开的；<br />
-          · 浏览器已允许摄像头权限；<br />
-          · 没有使用不支持摄像头的内置浏览器。
+          請確認：<br />
+          · 頁面是透過 HTTPS 或 localhost 打開的；<br />
+          · 瀏覽器已允許相機權限；<br />
+          · 沒有使用不支援相機的內建瀏覽器。
         </p>
-        <button id="errorBackBtn" type="button">返回设置</button>
+        <button id="errorBackBtn" type="button">返回設定</button>
       </div>
     </div>
   </div>
+
+  <button id="videoSoundBtn" class="video-sound-btn" type="button" hidden>開啟聲音</button>
+  <button id="panelOpenBtn" class="panel-open-btn" type="button" hidden>開啟內容面板</button>
+
+  <section id="contentPanel" aria-label="內容面板" aria-hidden="true" inert>
+    <div class="content-panel-head">
+      <button id="panelPrev" class="panel-arrow" type="button" aria-label="上一頁">‹</button>
+      <button id="panelNext" class="panel-arrow" type="button" aria-label="下一頁">›</button>
+      <div class="panel-title-wrap">
+        <span id="panelKicker">WEB CONTENT</span>
+        <strong id="panelTitle">內容</strong>
+      </div>
+      <a id="panelOpenExternal" class="panel-link" href="#" target="_blank" rel="noopener">另開</a>
+      <button id="panelClose" class="panel-close" type="button">收起</button>
+    </div>
+    <div id="panelBody"></div>
+  </section>
 
   <div id="compileOverlay" class="overlay" hidden>
     <div class="compile-card">
       <div class="compile-orbit"></div>
       <div class="compile-kicker">LOCAL COMPILE</div>
-      <h2 id="compileTitle">正在编译识别图</h2>
-      <p id="compileMsg">全部在本机完成，不会上传服务器。</p>
+      <h2 id="compileTitle">正在編譯卡蓋圖案</h2>
+      <p id="compileMsg">全部在本機完成，不會上傳卡面。</p>
       <div class="progress"><div id="progressBar"></div></div>
-      <div class="compile-meta"><span id="compilePct">0%</span><span>请保持页面在前台</span></div>
+      <div class="compile-meta"><span id="compilePct">0%</span><span>請保持頁面在前台</span></div>
     </div>
   </div>
 
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
-  <!-- MindAR 1.2.2：core（Compiler / Controller / UI）+ A-Frame 绑定。
-       1.2.2 的 dist/mindar-image.prod.js 是 ESM，所以用 module 引入；
-       A-Frame 绑定包本身也内置一份 core，两个文件都按版本要求引入。 -->
+  <!-- MindAR 1.2.2：core 是 ESM；A-Frame 綁定包也內建 core。 -->
   <script type="module" src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image.prod.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 
@@ -1013,48 +1293,87 @@
     (() => {
       "use strict";
 
-      // =====================================================================
-      // 配置
-      // =====================================================================
       const MAX_TARGETS = 8;
-      const MAX_IMAGE_EDGE = 1024;        // 编译前把识别图最长边限制到 1024，手机上更稳
+      const MAX_TARGET_EDGE = 1024;
+      const DB_NAME = "id-card-ar";
+      const DB_STORE = "session";
+      const DB_KEY = "current";
       const TEX_W = 1024;
       const TEX_H = 512;
+      const CARD_W_CM = 8.56;
+      const CARD_H_CM = 5.4;
+      const CARD_W = 1;
+      const CARD_H = CARD_H_CM / CARD_W_CM;
       const FONT_STACK =
-        '"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",' +
+        '"PingFang TC","Hiragino Sans CNS","Noto Sans TC","Microsoft JhengHei",' +
         'system-ui,-apple-system,"Segoe UI",sans-serif';
 
-      // 弧形画面参数。纹理是 1024×512（2:1），弧长必须 = 2 × 高度，纹理才不变形。
-      // 公式：S = radius × theta(弧度)，令 S = 2 × height
-      // 所以：theta = 2 × height / radius
-      // 当前：theta = 2 × 0.52 / 0.72 = 1.4444 rad = 82.76°
-      // S = 0.72 × 1.4444 = 1.04 = 2 × 0.52
-      // 调整时保持这个比例，或按上面的公式重算 theta；只改 height 会拉伸。
-      const CURVE_HEIGHT = 0.52;
-      const CURVE_RADIUS = 0.72;
-      const CURVE_THETA_DEG = (2 * CURVE_HEIGHT / CURVE_RADIUS) * 180 / Math.PI;
-      const CURVE_Y = 0.55;
-      const CURVE_Z = 0.10 + CURVE_RADIUS; // 弧面中心落在识别图前方约 0.10 个单位
+      const TRACKING = {
+        stable: { filterMinCF: 0.0005, filterBeta: 100, missTolerance: 12, warmupTolerance: 5 },
+        balanced: { filterMinCF: 0.001, filterBeta: 1000, missTolerance: 6, warmupTolerance: 5 },
+        responsive: { filterMinCF: 0.004, filterBeta: 1800, missTolerance: 3, warmupTolerance: 3 }
+      };
 
-      const DEFAULT_CONTENT =
-        "姓名 / 专业 / 技能 / 简介\n" +
-        "在这里填写这段 AR 画面的正文。\n" +
-        "识别图只负责触发，画面内容与识别图无关。";
+      const TYPE_LABELS = {
+        text: "平面文字",
+        image: "照片 / PNG",
+        video: "影片檔案",
+        videoLink: "影片連結",
+        webpage: "互動網頁",
+        pdf: "PDF"
+      };
 
-      const PALETTES = [
-        { bgA: "#07090e", bgB: "#171b25", accent: "#ff8a3d", soft: "rgba(255,138,61,.24)", text: "#fff7ed" },
-        { bgA: "#06110f", bgB: "#102621", accent: "#58e0b5", soft: "rgba(88,224,181,.2)", text: "#effff9" },
-        { bgA: "#090915", bgB: "#191532", accent: "#9c8cff", soft: "rgba(156,140,255,.22)", text: "#f7f4ff" },
-        { bgA: "#120d0a", bgB: "#2a1812", accent: "#ffb057", soft: "rgba(255,176,87,.23)", text: "#fff5e8" },
-        { bgA: "#071018", bgB: "#102434", accent: "#5cc8ff", soft: "rgba(92,200,255,.2)", text: "#effaff" },
-        { bgA: "#120a12", bgB: "#291426", accent: "#ff7eb6", soft: "rgba(255,126,182,.2)", text: "#fff1f7" },
-        { bgA: "#0c0e07", bgB: "#232712", accent: "#d7e65a", soft: "rgba(215,230,90,.18)", text: "#fbffe8" },
-        { bgA: "#0e0c0a", bgB: "#29231c", accent: "#e6c08a", soft: "rgba(230,192,138,.2)", text: "#fff8ed" }
+      const PANEL_TYPES = new Set(["videoLink", "webpage", "pdf"]);
+
+      const TEXT_PALETTES = [
+        { accent: "#99ddcc", soft: "#eaf9f4" },
+        { accent: "#bad7df", soft: "#eef7fa" },
+        { accent: "#ffe2e2", soft: "#fff3f3" }
       ];
 
-      // =====================================================================
-      // DOM / 状态
-      // =====================================================================
+      const DEFAULT_TEXT =
+        "姓名 / 職稱 / 技能 / 簡介\n" +
+        "在這裡填寫這一頁要顯示的文字。\n" +
+        "卡蓋圖案只負責觸發，內容和圖案外觀無關。";
+
+      const state = {
+        targets: [],
+        adding: false,
+        compiling: false,
+        sceneEl: null,
+        sceneReady: false,
+        mindUrl: null,
+        cards: [],
+        activeTarget: -1,
+        activeCard: null,
+        currentPage: 0,
+        interactive: false,
+        everFound: false,
+        cameraError: false,
+        restoring: false,
+        mindBlob: null,
+        mindSignature: "",
+        panelOpen: false,
+        panelPage: -1,
+        activeVideo: null,
+        videoMuted: true,
+        renderToken: 0,
+        readyTimer: null,
+        toastTimer: null,
+        toastHideTimer: null,
+        uid: 0,
+        wakeLock: null,
+        settings: {
+          position: "above",
+          gapCm: 0.45,
+          offsetXCm: 0,
+          offsetYCm: 0,
+          scale: 1,
+          orientation: "flat",
+          stability: "stable"
+        }
+      };
+
       const setupEl = document.getElementById("setup");
       const arRootEl = document.getElementById("arRoot");
       const arHudEl = document.getElementById("arHud");
@@ -1079,35 +1398,34 @@
       const progressBarEl = document.getElementById("progressBar");
       const compilePctEl = document.getElementById("compilePct");
       const toastEl = document.getElementById("toast");
-
-      const state = {
-        targets: [],
-        adding: false,
-        compiling: false,
-        sceneEl: null,
-        sceneReady: false,
-        mindUrl: null,
-        textures: [],
-        cards: [],
-        activeTarget: -1,
-        activeCard: null,
-        currentPage: 0,
-        interactive: false,
-        everFound: false,
-        cameraError: false,
-        readyTimer: null,
-        toastTimer: null,
-        toastHideTimer: null,
-        uid: 0,
-        wakeLock: null
-      };
+      const diagramEl = document.getElementById("diagram");
+      const diagramContentEl = document.getElementById("diagramContent");
+      const overlapHintEl = document.getElementById("overlapHint");
+      const gapRangeEl = document.getElementById("gapRange");
+      const gapValueEl = document.getElementById("gapValue");
+      const offsetXRangeEl = document.getElementById("offsetXRange");
+      const offsetXValueEl = document.getElementById("offsetXValue");
+      const offsetYRangeEl = document.getElementById("offsetYRange");
+      const offsetYValueEl = document.getElementById("offsetYValue");
+      const scaleRangeEl = document.getElementById("scaleRange");
+      const scaleValueEl = document.getElementById("scaleValue");
+      const stabilitySelectEl = document.getElementById("stabilitySelect");
+      const contentPanelEl = document.getElementById("contentPanel");
+      const panelBodyEl = document.getElementById("panelBody");
+      const panelTitleEl = document.getElementById("panelTitle");
+      const panelKickerEl = document.getElementById("panelKicker");
+      const panelOpenExternalEl = document.getElementById("panelOpenExternal");
+      const panelPrevEl = document.getElementById("panelPrev");
+      const panelNextEl = document.getElementById("panelNext");
+      const panelCloseEl = document.getElementById("panelClose");
+      const videoSoundBtnEl = document.getElementById("videoSoundBtn");
+      const panelOpenBtnEl = document.getElementById("panelOpenBtn");
+      const clearSavedBtnEl = document.getElementById("clearSavedBtn");
 
       let touchStart = null;
 
-      // =====================================================================
-      // 小工具
-      // =====================================================================
       const pad2 = (n) => String(n).padStart(2, "0");
+      const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 
       function escapeHtml(value) {
         return String(value).replace(/[&<>"']/g, (ch) => ({
@@ -1120,9 +1438,13 @@
       }
 
       function nextPaint() {
-        return new Promise((resolve) => {
-          requestAnimationFrame(() => setTimeout(resolve, 0));
-        });
+        return new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0)));
+      }
+
+      function byteLabel(bytes) {
+        if (!bytes) return "0 B";
+        if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + " KB";
+        return (bytes / (1024 * 1024)).toFixed(1) + " MB";
       }
 
       function toast(message, duration = 3600) {
@@ -1147,22 +1469,26 @@
           const img = new Image();
           img.decoding = "async";
           img.onload = () => resolve(img);
-          img.onerror = () => reject(new Error("图片解码失败"));
+          img.onerror = () => reject(new Error("圖片解碼失敗"));
           img.src = src;
         });
       }
 
-      // 识别图只用于编译。这里把它缩到适合手机处理的大小，并铺白底，避免透明 PNG 变黑。
+      function defaultLabelFromFile(file, index) {
+        const base = file.name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
+        return (base || "卡蓋 " + pad2(index + 1)).slice(0, 40);
+      }
+
       async function prepareImageForCompiler(img) {
         const w = img.naturalWidth || img.width;
         const h = img.naturalHeight || img.height;
-        if (!w || !h) throw new Error("图片尺寸无效");
+        if (!w || !h) throw new Error("圖片尺寸無效");
 
-        let scale = Math.min(1, MAX_IMAGE_EDGE / Math.max(w, h));
-        let minEdge = Math.min(w, h) * scale;
+        let scale = Math.min(1, MAX_TARGET_EDGE / Math.max(w, h));
+        const minEdge = Math.min(w, h) * scale;
         if (minEdge < 256) {
           scale *= 256 / minEdge;
-          scale = Math.min(scale, MAX_IMAGE_EDGE / Math.max(w, h));
+          scale = Math.min(scale, MAX_TARGET_EDGE / Math.max(w, h));
         }
 
         const cw = Math.max(1, Math.round(w * scale));
@@ -1171,30 +1497,269 @@
         canvas.width = cw;
         canvas.height = ch;
         const ctx = canvas.getContext("2d");
-        if (!ctx) throw new Error("无法创建 Canvas");
-
+        if (!ctx) throw new Error("無法建立 Canvas");
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, cw, ch);
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = "high";
         ctx.drawImage(img, 0, 0, cw, ch);
-
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
+        const dataUrl = canvas.toDataURL("image/png");
         canvas.width = 1;
         canvas.height = 1;
         return loadImage(dataUrl);
       }
 
-      // =====================================================================
-      // 上传 / 卡片列表
-      // =====================================================================
-      function defaultLabelFromFile(file, index) {
-        const base = file.name
-          .replace(/\.[^.]+$/, "")
-          .replace(/[_-]+/g, " ")
-          .replace(/\s+/g, " ")
-          .trim();
-        return (base || "页面 " + (index + 1)).slice(0, 40);
+      function updateEnterButton() {
+        const ready = Boolean(getCompilerClass()) && !state.adding && !state.compiling && !state.restoring;
+        enterBtnEl.disabled = !state.targets.length || !ready;
+        const label = enterBtnEl.querySelector("span");
+        if (label) {
+          label.textContent = state.compiling
+            ? "正在編譯…"
+            : (state.targets.length ? "編譯 " + state.targets.length + " 個圖案並進入 AR" : "編譯並進入 AR");
+        }
+      }
+
+      /* ============================== local persistence ============================== */
+      function targetSignature() {
+        return state.targets.map((target) => {
+          const file = target.file;
+          return [file ? file.name : "", file ? file.size : 0].join(":");
+        }).join("|");
+      }
+
+      function openSessionDb() {
+        return new Promise((resolve, reject) => {
+          if (!window.indexedDB) { reject(new Error("瀏覽器不支援 IndexedDB")); return; }
+          const request = indexedDB.open(DB_NAME, 1);
+          request.onupgradeneeded = () => {
+            const db = request.result;
+            if (!db.objectStoreNames.contains(DB_STORE)) db.createObjectStore(DB_STORE);
+          };
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error || new Error("IndexedDB 開啟失敗"));
+        });
+      }
+
+      async function saveSession() {
+        if (!state.targets.length || !state.mindBlob) return;
+        const db = await openSessionDb();
+        try {
+          const payload = {
+            version: 1,
+            savedAt: Date.now(),
+            settings: Object.assign({}, state.settings),
+            signature: state.mindSignature,
+            mindBlob: state.mindBlob,
+            targets: state.targets.map((target) => ({
+              id: target.id,
+              label: target.label,
+              contentType: target.contentType,
+              text: target.text,
+              url: target.url,
+              targetName: target.file ? target.file.name : "cover.png",
+              targetMime: target.file ? target.file.type : "image/png",
+              targetLastModified: target.file ? target.file.lastModified : Date.now(),
+              targetBlob: target.file,
+              contentName: target.contentName,
+              contentMime: target.contentMime,
+              contentSize: target.contentSize,
+              contentBlob: target.contentFile
+            }))
+          };
+          await new Promise((resolve, reject) => {
+            const tx = db.transaction(DB_STORE, "readwrite");
+            tx.objectStore(DB_STORE).put(payload, DB_KEY);
+            tx.oncomplete = resolve;
+            tx.onerror = () => reject(tx.error || new Error("IndexedDB 寫入失敗"));
+            tx.onabort = () => reject(tx.error || new Error("IndexedDB 寫入被中止"));
+          });
+        } finally {
+          db.close();
+        }
+      }
+
+      async function restoreSession() {
+        state.restoring = true;
+        updateEnterButton();
+        let db = null;
+        try {
+          db = await openSessionDb();
+          const record = await new Promise((resolve, reject) => {
+            const tx = db.transaction(DB_STORE, "readonly");
+            const req = tx.objectStore(DB_STORE).get(DB_KEY);
+            req.onsuccess = () => resolve(req.result || null);
+            req.onerror = () => reject(req.error || new Error("IndexedDB 讀取失敗"));
+          });
+          if (!record || !Array.isArray(record.targets) || !record.targets.length) return false;
+
+          const restored = [];
+          for (const item of record.targets) {
+            if (!item || !item.targetBlob) continue;
+            const targetName = item.targetName || "cover.png";
+            const targetFile = item.targetBlob instanceof File && item.targetBlob.name
+              ? item.targetBlob
+              : new File([item.targetBlob], targetName, { type: item.targetMime || "image/png", lastModified: item.targetLastModified || Date.now() });
+            const previewUrl = URL.createObjectURL(targetFile);
+            try {
+              const original = await loadImage(previewUrl);
+              const prepared = await prepareImageForCompiler(original);
+              let contentFile = null;
+              let contentObjectUrl = null;
+              if (item.contentBlob) {
+                contentFile = item.contentBlob instanceof File && item.contentBlob.name
+                  ? item.contentBlob
+                  : new File([item.contentBlob], item.contentName || "content", { type: item.contentMime || "" });
+                contentObjectUrl = URL.createObjectURL(contentFile);
+              }
+              restored.push({
+                id: item.id || ++state.uid,
+                file: targetFile,
+                previewUrl,
+                img: prepared,
+                label: item.label || "卡蓋 " + pad2(restored.length + 1),
+                contentType: item.contentType || "text",
+                text: item.text || "",
+                url: item.url || "",
+                contentFile,
+                contentObjectUrl,
+                contentName: item.contentName || (contentFile ? contentFile.name : ""),
+                contentSize: item.contentSize || (contentFile ? contentFile.size : 0),
+                contentMime: item.contentMime || (contentFile ? contentFile.type : "")
+              });
+            } catch (err) {
+              URL.revokeObjectURL(previewUrl);
+              console.warn("[ID Card] 還原其中一個圖案失敗", err);
+            }
+          }
+          if (!restored.length) return false;
+
+          state.targets = restored;
+          state.uid = Math.max.apply(null, restored.map((target) => target.id).concat([state.uid]));
+          state.settings = Object.assign({}, state.settings, record.settings || {});
+          state.mindBlob = record.mindBlob || null;
+          state.mindSignature = record.signature || "";
+          updateSettingsUi();
+          renderCards();
+          toast("已載入上次儲存在這台手機的設定。", 3600);
+          return true;
+        } catch (err) {
+          console.warn("[ID Card] 讀取本機設定失敗", err);
+          return false;
+        } finally {
+          if (db) db.close();
+          state.restoring = false;
+          fileInputEl.disabled = state.adding || state.targets.length >= MAX_TARGETS;
+          dropZoneEl.classList.toggle("is-full", state.targets.length >= MAX_TARGETS);
+          updateEnterButton();
+        }
+      }
+
+      clearSavedBtnEl.addEventListener("click", () => {
+        if (!window.confirm("清除這台手機上儲存的卡蓋圖案與內容？")) return;
+        if (!window.indexedDB) { window.location.reload(); return; }
+        const request = indexedDB.deleteDatabase(DB_NAME);
+        request.onsuccess = () => window.location.reload();
+        request.onerror = () => toast("清除失敗，請重新整理頁面後再試。", 5000);
+        request.onblocked = () => toast("請關閉其他分頁後再試一次。", 5000);
+      });
+
+      /* ============================== target cards ============================== */
+      function contentAccept(type) {
+        if (type === "image") return "image/*";
+        if (type === "video") return "video/*";
+        if (type === "pdf") return "application/pdf,.pdf";
+        return "";
+      }
+
+      function renderContentEditor(target, index) {
+        if (target.contentType === "text") {
+          return `
+            <label class="field">
+              <span>文字內容</span>
+              <textarea data-field="text" maxlength="1200" rows="4"
+                placeholder="姓名、職稱、技能、簡介……">${escapeHtml(target.text)}</textarea>
+            </label>
+            <p class="editor-note">文字會變成一張平面的資訊卡。</p>
+          `;
+        }
+
+        if (target.contentType === "videoLink" || target.contentType === "webpage") {
+          const isVideo = target.contentType === "videoLink";
+          return `
+            <label class="field">
+              <span>${isVideo ? "影片網址" : "網頁網址"}</span>
+              <input type="url" data-field="url" value="${escapeHtml(target.url)}"
+                placeholder="${isVideo ? "https://youtu.be/… 或 https://…/video.mp4" : "https://example.com"}" />
+            </label>
+            <p class="editor-note">${isVideo ? "YouTube／Vimeo 會用下方互動面板播放；直接 MP4 連結也可以。" : "會用下方互動面板開啟；如果網站禁止嵌入，請按面板上的「另開」。"}</p>
+          `;
+        }
+
+        const hasFile = Boolean(target.contentObjectUrl);
+        const preview = hasFile && target.contentType === "image"
+          ? `<div class="content-preview"><img src="${escapeHtml(target.contentObjectUrl)}" alt="內容照片預覽" /><span class="file-name">${escapeHtml(target.contentName)}</span></div>`
+          : hasFile
+            ? `<div class="content-preview"><span class="file-icon">${target.contentType === "pdf" ? "PDF" : "VIDEO"}</span><span class="file-name">${escapeHtml(target.contentName)} · ${byteLabel(target.contentSize)}</span></div>`
+            : "";
+
+        return `
+          <div class="file-row">
+            <label class="file-btn">
+              <input type="file" data-content-file data-kind="${target.contentType}"
+                accept="${contentAccept(target.contentType)}" hidden />
+              ${hasFile ? "更換檔案" : "選擇檔案"}
+            </label>
+            <span class="file-name">${hasFile ? escapeHtml(target.contentName) + " · " + byteLabel(target.contentSize) : "尚未選擇檔案"}</span>
+          </div>
+          ${preview}
+          <p class="editor-note">${
+            target.contentType === "image"
+              ? "照片會保持原本比例，不會被拉伸。"
+              : target.contentType === "video"
+                ? "MP4／WebM；進入 AR 後預設靜音播放，點右下角可以開聲音。"
+                : "PDF 會用下方文件面板開啟；若手機不支援嵌入，請按「另開」。"
+          }</p>
+        `;
+      }
+
+      function renderCards() {
+        cardsEl.innerHTML = state.targets.map((target, index) => {
+          const typeOptions = Object.entries(TYPE_LABELS).map(([value, label]) =>
+            `<option value="${value}"${target.contentType === value ? " selected" : ""}>${label}</option>`
+          ).join("");
+
+          return `
+            <article class="target-card" data-id="${target.id}">
+              <div class="target-top">
+                <div class="thumb">
+                  <img src="${escapeHtml(target.previewUrl)}" alt="卡蓋圖案 ${index + 1} 預覽" />
+                  <span class="thumb-index">${pad2(index + 1)}</span>
+                </div>
+                <div class="target-fields">
+                  <label class="field">
+                    <span>名稱／HUD 標題</span>
+                    <input data-field="label" maxlength="40" value="${escapeHtml(target.label)}"
+                      placeholder="例如：個人資料 / 作品集" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span>內容類型</span>
+                    <select data-field="contentType">${typeOptions}</select>
+                  </label>
+                </div>
+                <button class="remove-btn" type="button" data-remove aria-label="移除第 ${index + 1} 個圖案">×</button>
+              </div>
+              <div class="content-editor">${renderContentEditor(target, index)}</div>
+            </article>
+          `;
+        }).join("");
+
+        emptyHintEl.hidden = state.targets.length > 0;
+        countBadgeEl.textContent = state.targets.length + " / " + MAX_TARGETS;
+        dropZoneEl.classList.toggle("is-full", state.targets.length >= MAX_TARGETS);
+        fileInputEl.disabled = state.adding || state.restoring || state.targets.length >= MAX_TARGETS;
+        updateEnterButton();
+        updateDots();
       }
 
       function findTargetById(id) {
@@ -1206,22 +1771,16 @@
         const files = Array.from(fileList || []);
         if (!files.length) return;
 
-        const imageFiles = files.filter((file) =>
+        const images = files.filter((file) =>
           (file.type && file.type.startsWith("image/")) ||
           /\.(png|jpe?g|webp|gif|bmp|heic|heif|avif)$/i.test(file.name)
         );
-        const skipped = files.length - imageFiles.length;
-        if (skipped > 0) toast("已忽略 " + skipped + " 个非图片文件。");
+        if (images.length !== files.length) toast("已忽略非圖片檔案。");
 
         const remaining = MAX_TARGETS - state.targets.length;
-        if (remaining <= 0) {
-          toast("最多只能上传 " + MAX_TARGETS + " 张识别图。");
-          return;
-        }
-        const accepted = imageFiles.slice(0, remaining);
-        if (imageFiles.length > remaining) {
-          toast("最多 " + MAX_TARGETS + " 张，本次只加入前 " + remaining + " 张。");
-        }
+        if (remaining <= 0) { toast("最多只能上傳 " + MAX_TARGETS + " 張卡蓋圖案。"); return; }
+        const accepted = images.slice(0, remaining);
+        if (images.length > remaining) toast("最多 " + MAX_TARGETS + " 張，本次先加入前 " + remaining + " 張。");
         if (!accepted.length) return;
 
         state.adding = true;
@@ -1242,12 +1801,19 @@
               previewUrl,
               img: prepared,
               label: defaultLabelFromFile(file, state.targets.length),
-              content: ""
+              contentType: "text",
+              text: "",
+              url: "",
+              contentFile: null,
+              contentObjectUrl: null,
+              contentName: "",
+              contentSize: 0,
+              contentMime: ""
             });
           } catch (err) {
             failed++;
             if (previewUrl) URL.revokeObjectURL(previewUrl);
-            console.error("[AR] 图片读取失败", file.name, err);
+            console.error("[ID Card] 卡蓋圖案讀取失敗", file.name, err);
           }
         }
 
@@ -1256,66 +1822,72 @@
         fileInputEl.disabled = false;
         fileInputEl.value = "";
         renderCards();
-        if (failed) toast(failed + " 张图片读取失败，请换一张试试。");
+        if (failed) toast(failed + " 張圖片讀取失敗，請換一張試試。");
       }
 
-      function renderCards() {
-        cardsEl.innerHTML = state.targets.map((target, index) => `
-          <article class="target-card" data-id="${target.id}">
-            <div class="thumb">
-              <img src="${escapeHtml(target.previewUrl)}" alt="识别图 ${index + 1} 预览" />
-              <span class="thumb-index">${pad2(index + 1)}</span>
-            </div>
-            <div class="fields">
-              <label class="field">
-                <span>标签 / 标题</span>
-                <input data-field="label" maxlength="40" value="${escapeHtml(target.label)}"
-                  placeholder="例如：个人简历" autocomplete="off" />
-              </label>
-              <label class="field">
-                <span>AR 画面正文</span>
-                <textarea data-field="content" maxlength="800" rows="3"
-                  placeholder="姓名、专业、技能、简介……随便写几行">${escapeHtml(target.content)}</textarea>
-              </label>
-            </div>
-            <button class="remove-btn" type="button" data-remove aria-label="移除第 ${index + 1} 张识别图">×</button>
-          </article>
-        `).join("");
-
-        emptyHintEl.hidden = state.targets.length > 0;
-        countBadgeEl.textContent = state.targets.length + " / " + MAX_TARGETS;
-        dropZoneEl.classList.toggle("is-full", state.targets.length >= MAX_TARGETS);
-        fileInputEl.disabled = state.adding || state.targets.length >= MAX_TARGETS;
-        updateEnterButton();
-        updateDots();
+      function clearTargetContentFile(target) {
+        if (target.contentObjectUrl) URL.revokeObjectURL(target.contentObjectUrl);
+        target.contentObjectUrl = null;
+        target.contentFile = null;
+        target.contentName = "";
+        target.contentSize = 0;
+        target.contentMime = "";
       }
 
-      function updateEnterButton() {
-        const ready = Boolean(getCompilerClass()) && !state.adding && !state.compiling;
-        const canEnter = state.targets.length > 0 && ready;
-        enterBtnEl.disabled = !canEnter;
-        const label = enterBtnEl.querySelector("span");
-        if (label) {
-          label.textContent = state.compiling
-            ? "正在编译…"
-            : (state.targets.length
-              ? "编译 " + state.targets.length + " 张并进入 AR"
-              : "编译并进入 AR");
-        }
+      function isAllowedContentFile(kind, file) {
+        if (kind === "image") return (file.type && file.type.startsWith("image/")) || /\.(png|jpe?g|webp|gif|avif)$/i.test(file.name);
+        if (kind === "video") return (file.type && file.type.startsWith("video/")) || /\.(mp4|webm|mov|m4v)$/i.test(file.name);
+        if (kind === "pdf") return file.type === "application/pdf" || /\.pdf$/i.test(file.name);
+        return false;
       }
 
-      fileInputEl.addEventListener("change", () => {
-        addFiles(fileInputEl.files);
-      });
+      function chooseContentFile(target, kind, file) {
+        if (!file) return;
+        if (!isAllowedContentFile(kind, file)) { toast("這個檔案類型不符合。"); return; }
+        const max = kind === "video" ? 100 * 1024 * 1024 : kind === "pdf" ? 40 * 1024 * 1024 : 25 * 1024 * 1024;
+        if (file.size > max) { toast("檔案太大，建議小於 " + byteLabel(max) + "。", 5200); return; }
+        clearTargetContentFile(target);
+        target.contentFile = file;
+        target.contentObjectUrl = URL.createObjectURL(file);
+        target.contentName = file.name;
+        target.contentSize = file.size;
+        target.contentMime = file.type || (kind === "pdf" ? "application/pdf" : kind);
+        renderCards();
+      }
+
+      fileInputEl.addEventListener("change", () => addFiles(fileInputEl.files));
 
       cardsEl.addEventListener("input", (event) => {
         const field = event.target.getAttribute("data-field");
-        if (!field) return;
+        if (!field || field === "contentType") return;
         const cardEl = event.target.closest(".target-card");
         if (!cardEl) return;
         const target = findTargetById(cardEl.dataset.id);
         if (!target) return;
         target[field] = event.target.value;
+        updateEnterButton();
+      });
+
+      cardsEl.addEventListener("change", (event) => {
+        const cardEl = event.target.closest(".target-card");
+        if (!cardEl) return;
+        const target = findTargetById(cardEl.dataset.id);
+        if (!target) return;
+
+        if (event.target.getAttribute("data-field") === "contentType") {
+          const nextType = event.target.value;
+          if ((target.contentType === "video" || target.contentType === "image" || target.contentType === "pdf") &&
+              nextType !== target.contentType) {
+            clearTargetContentFile(target);
+          }
+          target.contentType = nextType;
+          renderCards();
+          return;
+        }
+
+        if (event.target.hasAttribute("data-content-file")) {
+          chooseContentFile(target, event.target.getAttribute("data-kind"), event.target.files && event.target.files[0]);
+        }
       });
 
       cardsEl.addEventListener("click", (event) => {
@@ -1326,7 +1898,10 @@
         const index = state.targets.findIndex((target) => String(target.id) === String(cardEl.dataset.id));
         if (index === -1) return;
         const [removed] = state.targets.splice(index, 1);
-        if (removed && removed.previewUrl) URL.revokeObjectURL(removed.previewUrl);
+        if (removed) {
+          if (removed.previewUrl) URL.revokeObjectURL(removed.previewUrl);
+          clearTargetContentFile(removed);
+        }
         renderCards();
       });
 
@@ -1336,263 +1911,97 @@
           if (state.targets.length < MAX_TARGETS && !state.adding) dropZoneEl.classList.add("drag");
         });
       });
-
       ["dragleave", "drop"].forEach((eventName) => {
         dropZoneEl.addEventListener(eventName, (event) => {
           event.preventDefault();
           dropZoneEl.classList.remove("drag");
         });
       });
-
       dropZoneEl.addEventListener("drop", (event) => {
         if (event.dataTransfer && event.dataTransfer.files) addFiles(event.dataTransfer.files);
       });
 
-      // =====================================================================
-      // Canvas 纹理
-      // =====================================================================
-      function roundRectPath(ctx, x, y, w, h, r) {
-        const radius = Math.min(r, w / 2, h / 2);
-        ctx.beginPath();
-        ctx.moveTo(x + radius, y);
-        ctx.arcTo(x + w, y, x + w, y + h, radius);
-        ctx.arcTo(x + w, y + h, x, y + h, radius);
-        ctx.arcTo(x, y + h, x, y, radius);
-        ctx.arcTo(x, y, x + w, y, radius);
-        ctx.closePath();
-      }
+      /* ============================== settings / diagram ============================== */
+      function updateSettingsUi() {
+        gapValueEl.textContent = state.settings.gapCm.toFixed(2) + " cm";
+        offsetXValueEl.textContent = state.settings.offsetXCm.toFixed(1) + " cm";
+        offsetYValueEl.textContent = state.settings.offsetYCm.toFixed(1) + " cm";
+        scaleValueEl.textContent = Math.round(state.settings.scale * 100) + "%";
+        gapRangeEl.value = state.settings.gapCm;
+        offsetXRangeEl.value = state.settings.offsetXCm;
+        offsetYRangeEl.value = state.settings.offsetYCm;
+        scaleRangeEl.value = state.settings.scale;
+        stabilitySelectEl.value = state.settings.stability;
 
-      function wrapText(ctx, text, maxWidth) {
-        const lines = [];
-        const paragraphs = String(text).replace(/\t/g, "    ").split(/\r?\n/);
-
-        for (const paragraph of paragraphs) {
-          if (!paragraph) {
-            lines.push("");
-            continue;
-          }
-
-          const units = paragraph.match(/[A-Za-z0-9_@#$%&*+\-./:]+|\s+|[\s\S]/g) || [];
-          let line = "";
-
-          for (const unit of units) {
-            const candidate = line + unit;
-            if (ctx.measureText(candidate).width <= maxWidth || !line) {
-              line = candidate;
-              continue;
-            }
-
-            if (line.trim()) lines.push(line.trimEnd());
-            line = "";
-
-            if (ctx.measureText(unit).width > maxWidth) {
-              for (const ch of unit) {
-                if (ctx.measureText(line + ch).width > maxWidth && line) {
-                  lines.push(line);
-                  line = "";
-                }
-                line += ch;
-              }
-            } else {
-              line = unit.trimStart();
-            }
-          }
-          lines.push(line.trimEnd());
-        }
-        return lines;
-      }
-
-      function fitTitle(ctx, text, maxWidth, maxSize, minSize) {
-        let size = maxSize;
-        for (; size >= minSize; size -= 2) {
-          ctx.font = "700 " + size + "px " + FONT_STACK;
-          if (ctx.measureText(text).width <= maxWidth) break;
-        }
-        let value = text;
-        if (ctx.measureText(value).width > maxWidth) {
-          while (value.length > 1 && ctx.measureText(value + "…").width > maxWidth) {
-            value = value.slice(0, -1);
-          }
-          value += "…";
-        }
-        return { text: value, size: Math.max(minSize, size) };
-      }
-
-      function ellipsize(ctx, text, maxWidth) {
-        let value = text.trimEnd();
-        while (value.length > 1 && ctx.measureText(value + "…").width > maxWidth) {
-          value = value.slice(0, -1);
-        }
-        return value + "…";
-      }
-
-      // =====================================================================
-      // 【之后替换真实内容的地方】
-      // 注意：这里完全没有使用识别图。纹理只由 label + content 生成。
-      // 如果之后要接真实简历、作品集、时间轴，只需要改 drawCardFace() 里
-      // 的排版和文字来源，不要把识别图贴上来。
-      // =====================================================================
-      function drawCardFace(ctx, target, index, total) {
-        const palette = PALETTES[index % PALETTES.length];
-        const label = (target.label || "").trim().replace(/\s+/g, " ") || "页面 " + (index + 1);
-        const body = (target.content || "").trim() || DEFAULT_CONTENT;
-        const w = TEX_W;
-        const h = TEX_H;
-
-        // 背景渐变
-        const bg = ctx.createLinearGradient(0, 0, w, h);
-        bg.addColorStop(0, palette.bgA);
-        bg.addColorStop(0.58, palette.bgB);
-        bg.addColorStop(1, palette.bgA);
-        ctx.fillStyle = bg;
-        ctx.fillRect(0, 0, w, h);
-
-        // 右上角色光
-        const glow = ctx.createRadialGradient(w * 0.82, h * 0.08, 8, w * 0.82, h * 0.08, w * 0.8);
-        glow.addColorStop(0, palette.soft);
-        glow.addColorStop(0.55, "rgba(0,0,0,0)");
-        glow.addColorStop(1, "rgba(0,0,0,0)");
-        ctx.fillStyle = glow;
-        ctx.fillRect(0, 0, w, h);
-
-        // 细斜线纹理
-        ctx.save();
-        ctx.globalAlpha = 0.035;
-        ctx.strokeStyle = "#ffffff";
-        ctx.lineWidth = 1;
-        for (let x = -h; x < w + h; x += 46) {
-          ctx.beginPath();
-          ctx.moveTo(x, 0);
-          ctx.lineTo(x + h, h);
-          ctx.stroke();
-        }
-        ctx.restore();
-
-        // 背景大页码
-        ctx.save();
-        ctx.globalAlpha = 0.052;
-        ctx.fillStyle = palette.accent;
-        ctx.font = "800 330px " + FONT_STACK;
-        ctx.textAlign = "right";
-        ctx.textBaseline = "alphabetic";
-        ctx.fillText(pad2(index + 1), w - 46, h - 12);
-        ctx.restore();
-
-        // 内框
-        roundRectPath(ctx, 24, 24, w - 48, h - 48, 28);
-        ctx.strokeStyle = "rgba(255,255,255,.14)";
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        // 左上角小色条
-        ctx.fillStyle = palette.accent;
-        ctx.fillRect(64, 62, 8, 32);
-
-        // 顶栏
-        ctx.textAlign = "left";
-        ctx.textBaseline = "alphabetic";
-        ctx.fillStyle = "rgba(255,255,255,.58)";
-        ctx.font = "600 22px " + FONT_STACK;
-        ctx.fillText("AR / CARD", 88, 86);
-
-        ctx.textAlign = "right";
-        ctx.fillStyle = "rgba(255,255,255,.32)";
-        ctx.font = "500 20px " + FONT_STACK;
-        ctx.fillText("IMAGE TRIGGER", w - 64, 86);
-        ctx.textAlign = "left";
-
-        // 大标题
-        const title = fitTitle(ctx, label, w - 128, 58, 36);
-        ctx.fillStyle = palette.text;
-        ctx.font = "700 " + title.size + "px " + FONT_STACK;
-        ctx.fillText(title.text, 64, 158);
-
-        // 标题下划线
-        ctx.fillStyle = palette.accent;
-        ctx.fillRect(64, 181, 110, 5);
-
-        // 正文
-        const bodyTop = 222;
-        const bodyBottomLimit = 438;
-        const maxBodyHeight = bodyBottomLimit - bodyTop;
-        let bodySize = 32;
-        let lineHeight = 46;
-        let lines = [];
-
-        for (; bodySize >= 22; bodySize -= 2) {
-          lineHeight = Math.round(bodySize * 1.42);
-          ctx.font = "400 " + bodySize + "px " + FONT_STACK;
-          lines = wrapText(ctx, body, w - 128);
-          if (lines.length * lineHeight <= maxBodyHeight) break;
-        }
-
-        const maxLines = Math.max(1, Math.floor(maxBodyHeight / lineHeight));
-        if (lines.length > maxLines) {
-          lines = lines.slice(0, maxLines);
-          lines[maxLines - 1] = ellipsize(ctx, lines[maxLines - 1], w - 128);
-        }
-
-        ctx.fillStyle = "rgba(255,248,238,.74)";
-        ctx.font = "400 " + bodySize + "px " + FONT_STACK;
-        lines.forEach((line, lineIndex) => {
-          ctx.fillText(line, 64, bodyTop + lineIndex * lineHeight);
+        document.querySelectorAll("[data-position]").forEach((btn) => {
+          btn.classList.toggle("active", btn.getAttribute("data-position") === state.settings.position);
+        });
+        document.querySelectorAll("[data-orientation]").forEach((btn) => {
+          btn.classList.toggle("active", btn.getAttribute("data-orientation") === state.settings.orientation);
         });
 
-        // 底部分隔线
-        ctx.strokeStyle = "rgba(255,255,255,.12)";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(64, 447);
-        ctx.lineTo(w - 64, 447);
-        ctx.stroke();
-
-        // 底部提示 / 页码
-        ctx.fillStyle = "rgba(255,255,255,.4)";
-        ctx.font = "500 19px " + FONT_STACK;
-        ctx.fillText(total > 1 ? "SWIPE TO EXPLORE" : "AUGMENTED CARD", 64, 479);
-
-        ctx.textAlign = "right";
-        ctx.fillStyle = palette.accent;
-        ctx.font = "700 28px " + FONT_STACK;
-        ctx.fillText(pad2(index + 1) + " / " + pad2(total), w - 64, 480);
-        ctx.textAlign = "left";
+        updateDiagram();
       }
 
-      function makeTexture(target, index, total) {
-        const canvas = document.createElement("canvas");
-        canvas.width = TEX_W;
-        canvas.height = TEX_H;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) throw new Error("无法创建纹理 Canvas");
+      function updateDiagram() {
+        const rect = diagramEl.getBoundingClientRect();
+        const width = rect.width || 290;
+        const height = rect.height || 210;
+        const cardW = 122;
+        const cardH = 77;
+        const contentW = 96;
+        const contentH = 54;
+        const gapPx = 8 + state.settings.gapCm * 14;
+        const offX = state.settings.offsetXCm * 12;
+        const offY = state.settings.offsetYCm * 12;
+        const cx = width / 2;
+        const cy = height / 2;
+        let x = cx;
+        let y = cy;
+        let overlap = state.settings.position === "center";
 
-        drawCardFace(ctx, target, index, total);
-
-        const THREE = window.AFRAME && window.AFRAME.THREE;
-        if (!THREE) throw new Error("A-Frame / three.js 未加载");
-
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.wrapS = THREE.RepeatWrapping;
-        texture.wrapT = THREE.RepeatWrapping;
-        // a-curvedimage 把纹理贴在圆柱内侧；A-Frame 原语默认用 repeat '-1 1' 做水平镜像。
-        // 这里直接给 mesh 设置 map，所以要手动复制这个默认行为。
-        texture.repeat.set(-1, 1);
-        texture.offset.set(0, 0);
-        texture.minFilter = THREE.LinearMipmapLinearFilter;
-        texture.magFilter = THREE.LinearFilter;
-        texture.generateMipmaps = true;
-        texture.needsUpdate = true;
-
-        if (THREE.SRGBColorSpace !== undefined) {
-          texture.colorSpace = THREE.SRGBColorSpace;
-        } else if (THREE.sRGBEncoding !== undefined) {
-          texture.encoding = THREE.sRGBEncoding;
+        if (state.settings.position === "above") {
+          y = cy - cardH / 2 - gapPx - contentH / 2;
+          if (offY < -state.settings.gapCm * 11.5) overlap = true;
+        } else if (state.settings.position === "below") {
+          y = cy + cardH / 2 + gapPx + contentH / 2;
+          if (offY > state.settings.gapCm * 11.5) overlap = true;
+        } else if (state.settings.position === "left") {
+          x = cx - cardW / 2 - gapPx - contentW / 2;
+          if (offX > state.settings.gapCm * 11.5) overlap = true;
+        } else if (state.settings.position === "right") {
+          x = cx + cardW / 2 + gapPx + contentW / 2;
+          if (offX < -state.settings.gapCm * 11.5) overlap = true;
         }
-        return texture;
+
+        x = clamp(x + offX, contentW / 2 + 10, width - contentW / 2 - 10);
+        y = clamp(y + offY, contentH / 2 + 10, height - contentH / 2 - 10);
+        diagramContentEl.style.left = x + "px";
+        diagramContentEl.style.top = y + "px";
+        diagramContentEl.classList.toggle("overlap", overlap);
+        overlapHintEl.hidden = !overlap;
       }
 
-      // =====================================================================
-      // 编译 + 动态创建 a-scene
-      // =====================================================================
+      document.querySelectorAll("[data-position]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          state.settings.position = btn.getAttribute("data-position");
+          updateSettingsUi();
+        });
+      });
+      document.querySelectorAll("[data-orientation]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          state.settings.orientation = btn.getAttribute("data-orientation");
+          updateSettingsUi();
+        });
+      });
+      gapRangeEl.addEventListener("input", () => { state.settings.gapCm = Number(gapRangeEl.value); updateSettingsUi(); });
+      offsetXRangeEl.addEventListener("input", () => { state.settings.offsetXCm = Number(offsetXRangeEl.value); updateSettingsUi(); });
+      offsetYRangeEl.addEventListener("input", () => { state.settings.offsetYCm = Number(offsetYRangeEl.value); updateSettingsUi(); });
+      scaleRangeEl.addEventListener("input", () => { state.settings.scale = Number(scaleRangeEl.value); updateSettingsUi(); });
+      stabilitySelectEl.addEventListener("change", () => { state.settings.stability = stabilitySelectEl.value; });
+      window.addEventListener("resize", updateDiagram);
+
+      /* ============================== compile / scene ============================== */
       function setCompileProgress(percent, message) {
         const value = Math.max(0, Math.min(100, Math.round(percent)));
         progressBarEl.style.width = value + "%";
@@ -1602,7 +2011,7 @@
 
       function showCompileOverlay(show) {
         compileOverlayEl.hidden = !show;
-        if (show && compileTitleEl) compileTitleEl.textContent = "正在编译识别图";
+        if (show) compileTitleEl.textContent = "正在編譯卡蓋圖案";
       }
 
       function showArUi() {
@@ -1615,121 +2024,131 @@
         updateHud();
       }
 
-      function applyTextureToCard(card, page) {
-        if (!card) return;
-        card.requestedPage = page;
-        if (!card.mesh || !state.textures[page]) return;
-        card.mesh.material.map = state.textures[page];
-        card.mesh.material.needsUpdate = true;
-      }
-
-      function attachCardMesh(card, mesh) {
-        if (!card || !mesh || !mesh.material) return;
-        card.mesh = mesh;
-        mesh.frustumCulled = false;
-        mesh.material.color.set(0xffffff);
-        mesh.material.toneMapped = false;
-        card.mesh.material.map = state.textures[card.requestedPage] || state.textures[card.index];
-        card.mesh.material.needsUpdate = true;
-      }
-
       function countCompiledFeatures(data) {
         let count = 0;
         (data || []).forEach((item) => {
           (item.matchingData || []).forEach((keyframe) => {
-            count += (keyframe.maximaPoints ? keyframe.maximaPoints.length : 0);
-            count += (keyframe.minimaPoints ? keyframe.minimaPoints.length : 0);
+            count += keyframe.maximaPoints ? keyframe.maximaPoints.length : 0;
+            count += keyframe.minimaPoints ? keyframe.minimaPoints.length : 0;
           });
         });
         return count;
       }
 
+      function validateTargets() {
+        if (!state.targets.length) { toast("先上傳至少一張卡蓋圖案。"); return false; }
+        for (let i = 0; i < state.targets.length; i++) {
+          const target = state.targets[i];
+          const n = i + 1;
+          if (target.contentType === "text") {
+            // 文字可以留白，會顯示預設說明。
+          } else if (target.contentType === "image" || target.contentType === "video" || target.contentType === "pdf") {
+            if (!target.contentFile || !target.contentObjectUrl) {
+              toast("第 " + n + " 頁還沒選「" + TYPE_LABELS[target.contentType] + "」檔案。", 5000);
+              return false;
+            }
+          } else if (target.contentType === "videoLink" || target.contentType === "webpage") {
+            if (!/^https?:\/\//i.test(target.url || "")) {
+              toast("第 " + n + " 頁的網址不是有效的 http(s) 網址。", 5000);
+              return false;
+            }
+          }
+        }
+        return true;
+      }
+
       async function enterAr() {
         if (state.compiling) return;
-        if (state.adding) {
-          toast("图片还在读取，请稍等一下。", 2400);
-          return;
-        }
-        if (!state.targets.length) {
-          toast("先上传至少一张识别图。");
-          return;
-        }
-        if (!window.isSecureContext) {
-          toast("摄像头需要 HTTPS 或 localhost，请换一个 https:// 链接打开。", 5200);
-          return;
-        }
+        if (state.adding) { toast("圖片還在讀取，請稍等一下。"); return; }
+        if (!validateTargets()) return;
+        if (!window.isSecureContext) { toast("相機需要 HTTPS 或 localhost，請用 https:// 網址打開。", 5200); return; }
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          toast("当前浏览器不支持摄像头，请使用 iOS Safari 或 Chrome。", 5200);
+          toast("目前瀏覽器不支援相機，請使用 iOS Safari 或 Chrome。", 5200);
           return;
         }
-
         const Compiler = getCompilerClass();
-        if (!Compiler) {
-          toast("MindAR 还没有加载完成，请检查网络后刷新页面。", 5200);
-          return;
-        }
+        if (!Compiler) { toast("MindAR 還沒載入完成，請檢查網路後重新整理。", 5200); return; }
 
+        const signature = targetSignature();
         state.compiling = true;
         updateEnterButton();
-        setCompileProgress(0, "全部在本机完成，不会上传服务器。");
-        compileTitleEl.textContent = "正在编译识别图";
+        setCompileProgress(0, "全部在本機完成，不會上傳卡面。");
         showCompileOverlay(true);
         await nextPaint();
 
-        let exported = null;
-        let compiler = null;
+        // 同一組卡蓋圖案的 .mind 已經存在這台手機：直接沿用，不重編譯。
+        if (state.mindBlob && state.mindSignature === signature) {
+          try {
+            setCompileProgress(12, "正在讀取上次編譯的 .mind…");
+            state.mindUrl = URL.createObjectURL(state.mindBlob);
+            setCompileProgress(100, "正在啟動相機…");
+            compileTitleEl.textContent = "正在啟動相機";
+            showArUi();
+            buildDots();
+            mountArScene(state.mindUrl);
+            state.compiling = false;
+            updateEnterButton();
+            saveSession().catch((err) => {
+              console.warn("[ID Card] 本機儲存失敗", err);
+              toast("這次設定無法寫入手機儲存空間，可能已滿。", 5200);
+            });
+            requestWakeLock();
+            return;
+          } catch (err) {
+            console.error("[ID Card] 載入快取 .mind 失敗", err);
+            state.compiling = false;
+            updateEnterButton();
+            showCompileOverlay(false);
+            if (state.mindUrl) { URL.revokeObjectURL(state.mindUrl); state.mindUrl = null; }
+            if (!arHudEl.hidden) exitAr();
+            toast("載入上次編譯失敗，請重新整理後再試。", 5000);
+            return;
+          }
+        }
 
         try {
-          setCompileProgress(1, "正在准备图片…");
-          compiler = new Compiler();
+          setCompileProgress(1, "正在準備卡蓋圖案…");
+          const compiler = new Compiler();
           const dataList = await compiler.compileImageTargets(
             state.targets.map((target) => target.img),
-            (progress) => {
-              const message = progress < 50
-                ? "正在提取匹配特征…"
-                : "正在提取跟踪特征…";
-              setCompileProgress(progress, message);
-            }
+            (progress) => setCompileProgress(progress, progress < 50 ? "正在提取匹配特徵…" : "正在提取追蹤特徵（可能需要一點時間）…")
           );
-
           const featureCount = countCompiledFeatures(dataList);
-          console.info("[AR] 编译完成，匹配特征点约 " + featureCount + " 个。");
-          if (featureCount < 30) {
-            console.warn("[AR] 识别图特征偏少，可能不容易被追踪。");
-          }
+          console.info("[ID Card] 編譯完成，特徵點約 " + featureCount + " 個。");
+          if (featureCount < 40) console.warn("[ID Card] 卡蓋圖案特徵偏少，追蹤可能較不穩。");
 
-          setCompileProgress(99, "正在打包 .mind 数据…");
-          exported = await Promise.resolve(compiler.exportData());
-          if (!exported) throw new Error("编译结果为空");
-
+          setCompileProgress(99, "正在打包 .mind 資料…");
+          const exported = await Promise.resolve(compiler.exportData());
+          if (!exported) throw new Error("編譯結果為空");
           const blob = new Blob([exported], { type: "application/octet-stream" });
+          state.mindBlob = blob;
+          state.mindSignature = signature;
           state.mindUrl = URL.createObjectURL(blob);
 
-          setCompileProgress(100, "正在生成 AR 画面…");
-          state.textures = state.targets.map((target, index) =>
-            makeTexture(target, index, state.targets.length)
-          );
-
-          setCompileProgress(100, "正在启动摄像头…");
-          compileTitleEl.textContent = "正在启动摄像头";
+          setCompileProgress(100, "正在啟動相機…");
+          compileTitleEl.textContent = "正在啟動相機";
           showArUi();
           buildDots();
           mountArScene(state.mindUrl);
           state.compiling = false;
           updateEnterButton();
+          saveSession().catch((err) => {
+            console.warn("[ID Card] 本機儲存失敗", err);
+            toast("這次設定無法寫入手機儲存空間，可能已滿。", 5200);
+          });
+          if (featureCount < 40) {
+            window.setTimeout(() => toast("這張卡蓋圖案的特徵偏少，若一直抖動，建議換成霧面卡套或加高對比圖案。", 6200), 2600);
+          }
           requestWakeLock();
         } catch (err) {
-          console.error("[AR] 编译失败", err);
+          console.error("[ID Card] 編譯失敗", err);
           state.compiling = false;
           updateEnterButton();
           showCompileOverlay(false);
-          if (state.mindUrl) {
-            URL.revokeObjectURL(state.mindUrl);
-            state.mindUrl = null;
-          }
-          disposeTextures();
+          if (state.mindUrl) { URL.revokeObjectURL(state.mindUrl); state.mindUrl = null; }
+          disposePageCaches();
           if (!arHudEl.hidden) exitAr();
-          toast("编译失败：" + (err && err.message ? err.message : "请换一张识别图重试。"), 5600);
+          toast("編譯失敗：" + (err && err.message ? err.message : "請換一張圖案重試。"), 5600);
         }
       }
 
@@ -1739,17 +2158,19 @@
         sceneEl.setAttribute("loading-screen", { enabled: false });
         sceneEl.setAttribute("vr-mode-ui", { enabled: false });
         sceneEl.setAttribute("device-orientation-permission-ui", { enabled: false });
-        // 不在这里用对象形式设置 renderer：A-Frame 1.5 动态创建 scene 时，
-        // 这会让 renderer system 在 initSystems() 阶段拿不到完整 schema，
-        // 抛异常并中断后续 system（包括 mindar-image-system）的初始化。
-        // A-Frame 默认已开启 colorManagement / alpha，保持默认即可。
+
+        const track = TRACKING[state.settings.stability] || TRACKING.stable;
         sceneEl.setAttribute("mindar-image", {
           imageTargetSrc,
           maxTrack: 1,
           autoStart: true,
           uiLoading: "no",
           uiScanning: "no",
-          uiError: "no"
+          uiError: "no",
+          filterMinCF: track.filterMinCF,
+          filterBeta: track.filterBeta,
+          missTolerance: track.missTolerance,
+          warmupTolerance: track.warmupTolerance
         });
 
         const cameraEl = document.createElement("a-camera");
@@ -1763,69 +2184,86 @@
           const anchorEl = document.createElement("a-entity");
           anchorEl.setAttribute("mindar-image-target", { targetIndex: index });
 
-          // 识别图在 MindAR 里宽度 = 1 个单位，所以 markerHeight = 图片高 / 图片宽。
-          // 让画面底边始终落在识别图上边缘之上一点；竖图会自动抬高。
-          const img = target.img;
-          const markerHeight = (img.naturalHeight || img.height) /
-            Math.max(1, (img.naturalWidth || img.width));
-          const curveY = Math.max(
-            CURVE_Y,
-            markerHeight / 2 + CURVE_HEIGHT / 2 + 0.04
-          );
+          const rootEl = document.createElement("a-entity");
+          rootEl.setAttribute("position", "0 0 0");
+          if (state.settings.orientation === "billboard") rootEl.setAttribute("billboard-content", "");
+          rootEl.setAttribute("visible", false);
 
-          const curveEl = document.createElement("a-curvedimage");
-          curveEl.setAttribute("height", CURVE_HEIGHT);
-          curveEl.setAttribute("radius", CURVE_RADIUS);
-          curveEl.setAttribute("theta-length", CURVE_THETA_DEG);
-          curveEl.setAttribute("theta-start", -CURVE_THETA_DEG / 2);
-          curveEl.setAttribute("segments", 64);
-          curveEl.setAttribute("position", "0 " + curveY.toFixed(4) + " " + CURVE_Z);
-          // 旋转 180° 后弧面凹面朝向摄像头，纹理显示在弧形内侧。
-          curveEl.setAttribute("rotation", "0 180 0");
-          curveEl.setAttribute("material", "shader: flat; side: double; transparent: true; opacity: 1; color: #ffffff");
+          const frameEl = document.createElement("a-plane");
+          frameEl.setAttribute("width", 0.85);
+          frameEl.setAttribute("height", 0.45);
+          frameEl.setAttribute("position", "0 0 -0.006");
+          frameEl.setAttribute("material", "shader: flat; side: double; color: #f6f6f6; transparent: true; opacity: 0.96");
+          frameEl.setAttribute("visible", false);
+
+          const mediaEl = document.createElement("a-plane");
+          mediaEl.setAttribute("width", 0.82);
+          mediaEl.setAttribute("height", 0.41);
+          mediaEl.setAttribute("material", "shader: flat; side: double; color: #ffffff; transparent: true; opacity: 1");
+          mediaEl.setAttribute("visible", false);
+
+          rootEl.appendChild(frameEl);
+          rootEl.appendChild(mediaEl);
+          anchorEl.appendChild(rootEl);
+          sceneEl.appendChild(anchorEl);
 
           const card = {
             index,
+            target,
             anchorEl,
-            curveEl,
-            mesh: null,
-            requestedPage: index
+            rootEl,
+            frameEl,
+            mediaEl,
+            mediaMesh: null,
+            frameMesh: null
           };
 
-          const tryAttach = (mesh) => {
-            if (!mesh) return;
-            attachCardMesh(card, mesh);
+          const attach = () => {
+            const mediaMesh = mediaEl.getObject3D("mesh");
+            const frameMesh = frameEl.getObject3D("mesh");
+            if (mediaMesh) {
+              card.mediaMesh = mediaMesh;
+              mediaMesh.frustumCulled = false;
+              mediaMesh.material.toneMapped = false;
+              if (card.currentMedia && card.currentMedia.texture) {
+                mediaMesh.material.map = card.currentMedia.texture;
+                mediaMesh.material.needsUpdate = true;
+              }
+            }
+            if (frameMesh) {
+              card.frameMesh = frameMesh;
+              frameMesh.frustumCulled = false;
+            }
           };
 
-          curveEl.addEventListener("object3dset", (event) => {
-            if (event.detail && event.detail.type === "mesh") tryAttach(event.detail.object);
+          mediaEl.addEventListener("object3dset", (event) => {
+            if (event.detail && event.detail.type === "mesh") attach();
           });
-          curveEl.addEventListener("loaded", () => {
-            tryAttach(curveEl.getObject3D("mesh"));
+          frameEl.addEventListener("object3dset", (event) => {
+            if (event.detail && event.detail.type === "mesh") attach();
           });
+          mediaEl.addEventListener("loaded", attach);
+          frameEl.addEventListener("loaded", attach);
 
           anchorEl.addEventListener("targetFound", () => {
-            if (state.sceneEl !== sceneEl) return;
-            handleTargetFound(index);
+            if (state.sceneEl === sceneEl) handleTargetFound(index);
           });
           anchorEl.addEventListener("targetLost", () => {
-            if (state.sceneEl !== sceneEl) return;
-            handleTargetLost(index);
+            if (state.sceneEl === sceneEl) handleTargetLost(index);
           });
 
-          anchorEl.appendChild(curveEl);
-          sceneEl.appendChild(anchorEl);
           cards.push(card);
         });
 
         sceneEl.addEventListener("renderstart", () => {
           const renderer = sceneEl.renderer;
-          const maxAnisotropy = renderer && renderer.capabilities
-            ? renderer.capabilities.getMaxAnisotropy()
-            : 1;
-          state.textures.forEach((texture) => {
-            texture.anisotropy = Math.min(8, maxAnisotropy || 1);
-            texture.needsUpdate = true;
+          const max = renderer && renderer.capabilities ? renderer.capabilities.getMaxAnisotropy() : 1;
+          state.targets.forEach((target) => {
+            const textures = [target._textTexture, target._imageTexture, target._videoTexture].filter(Boolean);
+            textures.forEach((texture) => {
+              texture.anisotropy = Math.min(8, max || 1);
+              texture.needsUpdate = true;
+            });
           });
         }, { once: true });
 
@@ -1836,12 +2274,12 @@
           window.clearTimeout(state.readyTimer);
           showCompileOverlay(false);
           updateHud();
-          toast("已启动摄像头，将镜头对准识别图。", 3200);
+          toast("相機已啟動，將鏡頭對準卡蓋圖案；若內容超出畫面，把手機往後退一點。", 4200);
         });
 
         sceneEl.addEventListener("arError", (event) => {
           if (state.sceneEl !== sceneEl) return;
-          console.error("[AR] 摄像头错误", event && event.detail);
+          console.error("[ID Card] 相機錯誤", event && event.detail);
           window.clearTimeout(state.readyTimer);
           state.sceneReady = false;
           state.cameraError = true;
@@ -1858,19 +2296,14 @@
         state.sceneReady = false;
         arRootEl.replaceChildren(sceneEl);
 
-        // MindAR 在 _startAR() 里用 window.addEventListener('resize',
-        // this._resize.bind(this)) 注册监听，但退出时会把 video 置空。
-        // 若之后浏览器再触发 resize，原 _resize 会去读 null.videoWidth。
-        // 这里在它注册监听前套一层空值保护。
         const applyResizeGuard = () => {
-          const arSystem = sceneEl.systems && sceneEl.systems["mindar-image-system"];
-          if (!arSystem || arSystem.__resizeGuarded) return;
-          if (typeof arSystem._resize !== "function") return;
-          const originalResize = arSystem._resize;
-          arSystem.__resizeGuarded = true;
-          arSystem._resize = function () {
+          const system = sceneEl.systems && sceneEl.systems["mindar-image-system"];
+          if (!system || system.__resizeGuarded || typeof system._resize !== "function") return;
+          const original = system._resize;
+          system.__resizeGuarded = true;
+          system._resize = function () {
             if (!this.video || !this.video.videoWidth || !this.controller) return;
-            return originalResize.apply(this, arguments);
+            return original.apply(this, arguments);
           };
         };
         applyResizeGuard();
@@ -1880,49 +2313,452 @@
         state.readyTimer = window.setTimeout(() => {
           if (state.sceneEl !== sceneEl || state.sceneReady) return;
           showCompileOverlay(false);
-          hudModeEl.textContent = "等待摄像头";
-          toast("摄像头启动较慢，请检查权限，或返回后重试。", 5200);
+          if (!state.cameraError) toast("相機啟動較慢，請檢查權限或返回後重試。", 5200);
         }, 22000);
       }
 
-      function handleTargetFound(index) {
-        state.activeTarget = index;
-        state.activeCard = state.cards[index] || null;
-        state.currentPage = Math.min(index, Math.max(0, state.targets.length - 1));
-        state.interactive = true;
-        state.everFound = true;
-
-        // 明确只保留当前锚点可见；maxTrack 已经是 1，这里是第二道保险。
-        state.cards.forEach((card, cardIndex) => {
-          if (cardIndex !== index && card.anchorEl && card.anchorEl.object3D) {
-            card.anchorEl.object3D.visible = false;
+      if (window.AFRAME) {
+        AFRAME.registerComponent("billboard-content", {
+          tick: function () {
+            const scene = this.el.sceneEl;
+            const camera = scene && scene.camera;
+            if (!camera || !this.el.object3D.parent) return;
+            const THREE = AFRAME.THREE;
+            const parentQ = new THREE.Quaternion();
+            const camQ = new THREE.Quaternion();
+            this.el.object3D.parent.getWorldQuaternion(parentQ);
+            camera.getWorldQuaternion(camQ);
+            this.el.object3D.quaternion.copy(parentQ.invert().multiply(camQ));
           }
         });
+      }
 
-        if (state.activeCard) applyTextureToCard(state.activeCard, index);
+      /* ============================== page rendering ============================== */
+      function hideAllRoots() {
+        state.cards.forEach((card) => {
+          if (card.rootEl && card.rootEl.object3D) card.rootEl.object3D.visible = false;
+          if (card.mediaEl) card.mediaEl.setAttribute("visible", false);
+          if (card.frameEl) card.frameEl.setAttribute("visible", false);
+        });
+      }
+
+      function stopActiveVideo() {
+        if (state.activeVideo) {
+          try { state.activeVideo.pause(); } catch (err) { /* noop */ }
+          state.activeVideo = null;
+        }
+        videoSoundBtnEl.hidden = true;
+      }
+
+      function layoutCard(card, page, aspect) {
+        const s = state.settings;
+        let width = 0.82;
+        let height = width / (aspect || 1);
+        if (height > 0.58) {
+          height = 0.58;
+          width = height * aspect;
+        }
+        width *= s.scale;
+        height *= s.scale;
+
+        const gap = s.gapCm / CARD_W_CM;
+        let x = s.offsetXCm / CARD_W_CM;
+        let y = s.offsetYCm / CARD_W_CM;
+        const z = 0.012;
+
+        // MindAR 的 target 寬度固定是 1；高度則依上傳圖片的比例。
+        // 用實際 target 高度來放內容，才不會在方形或含背景的照片上壓到圖案。
+        const img = card.target.img;
+        const markerHeight = (img.naturalHeight || img.height) /
+          Math.max(1, (img.naturalWidth || img.width));
+        const halfMarkerHeight = Math.max(CARD_H / 2, markerHeight / 2);
+
+        if (s.position === "above") y += halfMarkerHeight + gap + height / 2;
+        else if (s.position === "below") y -= halfMarkerHeight + gap + height / 2;
+        else if (s.position === "left") x -= CARD_W / 2 + gap + width / 2;
+        else if (s.position === "right") x += CARD_W / 2 + gap + width / 2;
+
+        card.rootEl.setAttribute("position", x + " " + y + " " + z);
+        card.mediaEl.setAttribute("width", width);
+        card.mediaEl.setAttribute("height", height);
+        card.frameEl.setAttribute("width", width + 0.026);
+        card.frameEl.setAttribute("height", height + 0.026);
+        card.currentSize = { width, height };
+      }
+
+      function makeTextTexture(page, index, total) {
+        if (page._textTexture) return page._textTexture;
+        const canvas = document.createElement("canvas");
+        canvas.width = TEX_W;
+        canvas.height = TEX_H;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("無法建立文字紋理");
+
+        const palette = TEXT_PALETTES[index % TEXT_PALETTES.length];
+        const title = (page.label || "").trim() || "ID Card";
+        const body = (page.text || "").trim() || DEFAULT_TEXT;
+
+        ctx.fillStyle = "#f6f6f6";
+        ctx.fillRect(0, 0, TEX_W, TEX_H);
+
+        const glow = ctx.createRadialGradient(TEX_W * 0.9, 0, 10, TEX_W * 0.9, 0, TEX_W * 0.8);
+        glow.addColorStop(0, palette.accent + "88");
+        glow.addColorStop(0.5, "rgba(255,255,255,0)");
+        glow.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, TEX_W, TEX_H);
+
+        ctx.fillStyle = palette.soft;
+        ctx.beginPath();
+        ctx.arc(TEX_W - 110, 80, 120, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = "rgba(31,47,47,.13)";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(22, 22, TEX_W - 44, TEX_H - 44);
+
+        ctx.fillStyle = "#1f2f2f";
+        ctx.font = "800 24px " + FONT_STACK;
+        ctx.textAlign = "left";
+        ctx.textBaseline = "alphabetic";
+        ctx.fillText("ID CARD", 64, 86);
+
+        ctx.fillStyle = "rgba(31,47,47,.48)";
+        ctx.font = "600 20px " + FONT_STACK;
+        ctx.textAlign = "right";
+        ctx.fillText("SCAN · VIEW", TEX_W - 64, 86);
+        ctx.textAlign = "left";
+
+        let titleSize = 58;
+        ctx.font = "800 " + titleSize + "px " + FONT_STACK;
+        while (titleSize > 34 && ctx.measureText(title).width > TEX_W - 128) {
+          titleSize -= 2;
+          ctx.font = "800 " + titleSize + "px " + FONT_STACK;
+        }
+        let titleText = title;
+        while (titleText.length > 1 && ctx.measureText(titleText + "…").width > TEX_W - 128) {
+          titleText = titleText.slice(0, -1);
+        }
+        if (titleText !== title) titleText += "…";
+        ctx.fillStyle = "#1f2f2f";
+        ctx.fillText(titleText, 64, 164);
+
+        ctx.fillStyle = palette.accent;
+        ctx.fillRect(64, 188, 116, 6);
+
+        let bodySize = 32;
+        let lineHeight = 46;
+        let lines = [];
+        const maxBodyHeight = 200;
+        for (; bodySize >= 22; bodySize -= 2) {
+          lineHeight = Math.round(bodySize * 1.42);
+          ctx.font = "400 " + bodySize + "px " + FONT_STACK;
+          lines = wrapCanvasText(ctx, body, TEX_W - 128);
+          if (lines.length * lineHeight <= maxBodyHeight) break;
+        }
+        const maxLines = Math.max(1, Math.floor(maxBodyHeight / lineHeight));
+        if (lines.length > maxLines) {
+          lines = lines.slice(0, maxLines);
+          let last = lines[maxLines - 1];
+          while (last.length > 1 && ctx.measureText(last + "…").width > TEX_W - 128) last = last.slice(0, -1);
+          lines[maxLines - 1] = last + "…";
+        }
+        ctx.fillStyle = "rgba(31,47,47,.76)";
+        ctx.font = "400 " + bodySize + "px " + FONT_STACK;
+        lines.forEach((line, i) => ctx.fillText(line, 64, 240 + i * lineHeight));
+
+        ctx.strokeStyle = "rgba(31,47,47,.14)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(64, 456);
+        ctx.lineTo(TEX_W - 64, 456);
+        ctx.stroke();
+
+        ctx.fillStyle = "rgba(31,47,47,.5)";
+        ctx.font = "600 19px " + FONT_STACK;
+        ctx.fillText(total > 1 ? "左右滑動切換" : "ID CARD", 64, 486);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#1f2f2f";
+        ctx.font = "800 28px " + FONT_STACK;
+        ctx.fillText(pad2(index + 1) + " / " + pad2(total), TEX_W - 64, 487);
+        ctx.textAlign = "left";
+
+        const THREE = AFRAME.THREE;
+        const texture = new THREE.CanvasTexture(canvas);
+        if (THREE.SRGBColorSpace !== undefined) texture.colorSpace = THREE.SRGBColorSpace;
+        else if (THREE.sRGBEncoding !== undefined) texture.encoding = THREE.sRGBEncoding;
+        texture.minFilter = THREE.LinearMipmapLinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.generateMipmaps = true;
+        texture.needsUpdate = true;
+        page._textTexture = texture;
+        page._aspect = 2;
+        return texture;
+      }
+
+      function wrapCanvasText(ctx, text, maxWidth) {
+        const lines = [];
+        const paragraphs = String(text).replace(/\t/g, "    ").split(/\r?\n/);
+        for (const paragraph of paragraphs) {
+          if (!paragraph) { lines.push(""); continue; }
+          const units = paragraph.match(/[A-Za-z0-9_@#$%&*+\-./:]+|\s+|[\s\S]/g) || [];
+          let line = "";
+          for (const unit of units) {
+            const candidate = line + unit;
+            if (ctx.measureText(candidate).width <= maxWidth || !line) { line = candidate; continue; }
+            if (line.trim()) lines.push(line.trimEnd());
+            line = "";
+            if (ctx.measureText(unit).width > maxWidth) {
+              for (const ch of unit) {
+                if (ctx.measureText(line + ch).width > maxWidth && line) { lines.push(line); line = ""; }
+                line += ch;
+              }
+            } else {
+              line = unit.trimStart();
+            }
+          }
+          lines.push(line.trimEnd());
+        }
+        return lines;
+      }
+
+      function ensureImage(page) {
+        if (page._imageTexture) return Promise.resolve({ texture: page._imageTexture, aspect: page._aspect });
+        if (page._imagePromise) return page._imagePromise;
+        page._imagePromise = loadImage(page.contentObjectUrl).then((img) => {
+          const THREE = AFRAME.THREE;
+          const texture = new THREE.Texture(img);
+          if (THREE.SRGBColorSpace !== undefined) texture.colorSpace = THREE.SRGBColorSpace;
+          else if (THREE.sRGBEncoding !== undefined) texture.encoding = THREE.sRGBEncoding;
+          texture.needsUpdate = true;
+          page._imageTexture = texture;
+          page._aspect = img.naturalWidth / img.naturalHeight;
+          return { texture, aspect: page._aspect };
+        });
+        return page._imagePromise;
+      }
+
+      function ensureVideo(page) {
+        if (page._videoTexture) return Promise.resolve({ texture: page._videoTexture, aspect: page._aspect });
+        if (page._videoPromise) return page._videoPromise;
+        page._videoPromise = new Promise((resolve, reject) => {
+          const video = document.createElement("video");
+          video.src = page.contentObjectUrl;
+          video.loop = true;
+          video.muted = true;
+          video.playsInline = true;
+          video.setAttribute("playsinline", "");
+          video.setAttribute("webkit-playsinline", "");
+          video.preload = "auto";
+          video.style.cssText = "position:fixed;left:-9999px;top:0;width:2px;height:2px;opacity:0;pointer-events:none;";
+          document.body.appendChild(video);
+          const fail = (err) => {
+            try { video.remove(); } catch (e) { /* noop */ }
+            reject(err || new Error("影片載入失敗"));
+          };
+          video.addEventListener("error", () => fail(video.error || new Error("影片格式不支援")));
+          video.addEventListener("loadedmetadata", () => {
+            const THREE = AFRAME.THREE;
+            const texture = new THREE.VideoTexture(video);
+            if (THREE.SRGBColorSpace !== undefined) texture.colorSpace = THREE.SRGBColorSpace;
+            else if (THREE.sRGBEncoding !== undefined) texture.encoding = THREE.sRGBEncoding;
+            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+            texture.generateMipmaps = false;
+            texture.needsUpdate = true;
+            page._video = video;
+            page._videoTexture = texture;
+            page._aspect = video.videoWidth && video.videoHeight ? video.videoWidth / video.videoHeight : 16 / 9;
+            resolve({ texture, aspect: page._aspect });
+          }, { once: true });
+          video.load();
+        });
+        return page._videoPromise;
+      }
+
+      function getPageMedia(page) {
+        if (page.contentType === "text") {
+          return Promise.resolve({ texture: makeTextTexture(page, state.currentPage, state.targets.length), aspect: 2 });
+        }
+        if (page.contentType === "image") return ensureImage(page);
+        if (page.contentType === "video") return ensureVideo(page);
+        return Promise.reject(new Error("此內容類型不使用 3D 平面"));
+      }
+
+      async function renderActivePage() {
+        const page = state.targets[state.currentPage];
+        const card = state.activeCard;
+        const token = ++state.renderToken;
+        stopActiveVideo();
+        hideAllRoots();
+
+        if (!page || !card) return;
+
+        if (PANEL_TYPES.has(page.contentType)) {
+          openPanel(state.currentPage);
+          updateHud();
+          return;
+        }
+
+        closePanel();
+        try {
+          const media = await getPageMedia(page);
+          if (token !== state.renderToken || state.sceneEl === null) return;
+          card.currentMedia = media;
+          layoutCard(card, page, media.aspect);
+          if (card.mediaMesh) {
+            card.mediaMesh.material.map = media.texture;
+            card.mediaMesh.material.needsUpdate = true;
+          }
+          card.mediaEl.setAttribute("visible", true);
+          card.frameEl.setAttribute("visible", page.contentType === "image" || page.contentType === "video");
+          card.rootEl.object3D.visible = true;
+          if (page.contentType === "video" && page._video) {
+            state.activeVideo = page._video;
+            page._video.muted = state.videoMuted;
+            page._video.play().catch(() => {
+              toast("影片已載入；如果沒有自動播放，請點右下角的聲音按鈕。", 4200);
+            });
+          }
+          updateHud();
+        } catch (err) {
+          console.error("[ID Card] 內容載入失敗", err);
+          if (token !== state.renderToken) return;
+          toast("這一頁的內容載入失敗：" + (err.message || "請確認檔案格式。"), 5600);
+          hideAllRoots();
+          updateHud();
+        }
+      }
+
+      function handleTargetFound(index) {
+        if (state.sceneEl === null) return;
+        state.activeTarget = index;
+        state.activeCard = state.cards[index] || null;
+        state.currentPage = clamp(index, 0, state.targets.length - 1);
+        state.interactive = true;
+        state.everFound = true;
+        state.cards.forEach((card, cardIndex) => {
+          if (cardIndex !== index && card.anchorEl && card.anchorEl.object3D) card.anchorEl.object3D.visible = false;
+        });
+        renderActivePage();
         updateHud();
       }
 
       function handleTargetLost(index) {
         if (state.activeTarget !== index) return;
         state.interactive = false;
-        state.activeTarget = -1;
-        state.activeCard = null;
+        state.renderToken++;
+        stopActiveVideo();
+        hideAllRoots();
         updateHud();
       }
 
       function goToPage(page) {
         if (!state.interactive || !state.targets.length) return;
         const total = state.targets.length;
-        const next = ((page % total) + total) % total;
-        state.currentPage = next;
-        if (state.activeCard) applyTextureToCard(state.activeCard, next);
+        state.currentPage = ((page % total) + total) % total;
+        renderActivePage();
         updateHud();
       }
 
-      // =====================================================================
-      // HUD
-      // =====================================================================
+      /* ============================== panel ============================== */
+      function isEmbedVideo(url) {
+        return /youtube\.com|youtu\.be|vimeo\.com/i.test(url);
+      }
+
+      function toEmbedUrl(url) {
+        try {
+          const u = new URL(url);
+          if (/youtu\.be$/i.test(u.hostname)) return "https://www.youtube.com/embed/" + u.pathname.slice(1) + "?autoplay=1&playsinline=1&rel=0";
+          if (/youtube\.com$/i.test(u.hostname) || /www\.youtube\.com$/i.test(u.hostname)) {
+            if (u.searchParams.get("v")) return "https://www.youtube.com/embed/" + u.searchParams.get("v") + "?autoplay=1&playsinline=1&rel=0";
+            const shorts = u.pathname.match(/\/shorts\/([^/]+)/);
+            if (shorts) return "https://www.youtube.com/embed/" + shorts[1] + "?autoplay=1&playsinline=1&rel=0";
+          }
+          if (/vimeo\.com$/i.test(u.hostname) || /www\.vimeo\.com$/i.test(u.hostname)) {
+            const m = u.pathname.match(/(\d+)/);
+            if (m) return "https://player.vimeo.com/video/" + m[1] + "?autoplay=1";
+          }
+        } catch (err) { /* noop */ }
+        return url;
+      }
+
+      function isDirectVideoUrl(url) {
+        return /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(url);
+      }
+
+      function openPanel(pageIndex) {
+        const page = state.targets[pageIndex];
+        if (!page) return;
+        state.panelPage = pageIndex;
+        state.panelOpen = true;
+        panelTitleEl.textContent = page.label || "內容 " + pad2(pageIndex + 1);
+        panelKickerEl.textContent = TYPE_LABELS[page.contentType] + " · " + pad2(pageIndex + 1) + " / " + pad2(state.targets.length);
+        panelOpenExternalEl.href = page.contentType === "pdf" ? page.contentObjectUrl : (page.contentObjectUrl || page.url || "#");
+        panelBodyEl.replaceChildren();
+
+        if (page.contentType === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = page.contentObjectUrl;
+          iframe.title = panelTitleEl.textContent;
+          panelBodyEl.appendChild(iframe);
+        } else if (page.contentType === "webpage") {
+          const iframe = document.createElement("iframe");
+          iframe.src = page.url;
+          iframe.title = panelTitleEl.textContent;
+          iframe.setAttribute("allow", "fullscreen; autoplay; clipboard-write");
+          panelBodyEl.appendChild(iframe);
+        } else if (page.contentType === "videoLink") {
+          if (isDirectVideoUrl(page.url)) {
+            const video = document.createElement("video");
+            video.src = page.url;
+            video.controls = true;
+            video.playsInline = true;
+            video.setAttribute("playsinline", "");
+            panelBodyEl.appendChild(video);
+          } else {
+            const iframe = document.createElement("iframe");
+            iframe.src = isEmbedVideo(page.url) ? toEmbedUrl(page.url) : page.url;
+            iframe.title = panelTitleEl.textContent;
+            iframe.setAttribute("allow", "autoplay; fullscreen; picture-in-picture");
+            iframe.setAttribute("allowfullscreen", "");
+            panelBodyEl.appendChild(iframe);
+          }
+        } else {
+          const empty = document.createElement("div");
+          empty.className = "panel-empty";
+          empty.textContent = "這個內容類型目前不使用面板。";
+          panelBodyEl.appendChild(empty);
+        }
+
+        contentPanelEl.classList.add("open");
+        contentPanelEl.removeAttribute("aria-hidden");
+        contentPanelEl.removeAttribute("inert");
+        document.body.classList.add("panel-open");
+        panelOpenBtnEl.hidden = true;
+        updateHud();
+      }
+
+      function closePanel() {
+        state.panelOpen = false;
+        panelBodyEl.replaceChildren();
+        contentPanelEl.classList.remove("open");
+        contentPanelEl.setAttribute("aria-hidden", "true");
+        contentPanelEl.setAttribute("inert", "");
+        document.body.classList.remove("panel-open");
+        updateHud();
+      }
+
+      panelCloseEl.addEventListener("click", closePanel);
+      panelOpenBtnEl.addEventListener("click", () => {
+        if (!state.interactive) return;
+        const page = state.targets[state.currentPage];
+        if (page && PANEL_TYPES.has(page.contentType)) openPanel(state.currentPage);
+      });
+      panelPrevEl.addEventListener("click", () => goToPage(state.currentPage - 1));
+      panelNextEl.addEventListener("click", () => goToPage(state.currentPage + 1));
+
+      /* ============================== HUD ============================== */
       function buildDots() {
         dotsEl.innerHTML = "";
         state.targets.forEach((target, index) => {
@@ -1931,7 +2767,7 @@
           button.className = "dot";
           button.dataset.page = String(index);
           button.setAttribute("role", "tab");
-          button.setAttribute("aria-label", "第 " + (index + 1) + " 页：" + (target.label || "未命名"));
+          button.setAttribute("aria-label", "第 " + (index + 1) + " 頁：" + (target.label || "未命名"));
           button.addEventListener("click", () => goToPage(index));
           dotsEl.appendChild(button);
         });
@@ -1948,80 +2784,96 @@
 
       function updateHud() {
         const total = state.targets.length;
-        const safePage = total ? Math.min(state.currentPage, total - 1) : 0;
-        const label = total
-          ? ((state.targets[safePage] && state.targets[safePage].label) || "页面 " + (safePage + 1))
-          : "等待识别";
+        const safePage = total ? clamp(state.currentPage, 0, total - 1) : 0;
+        const page = total ? state.targets[safePage] : null;
+        const label = page ? (page.label || "內容 " + (safePage + 1)) : "等待識別";
 
         pageCounterEl.textContent = pad2(safePage + 1) + " / " + pad2(Math.max(1, total));
-        hudLabelEl.textContent = state.interactive
-          ? label
-          : (state.cameraError ? "摄像头没有启动" : (state.everFound ? "识别图已离开画面" : "等待识别"));
+        hudLabelEl.textContent = state.cameraError
+          ? "相機沒有啟動"
+          : (state.interactive ? label : (state.everFound ? "卡蓋已離開畫面" : "等待識別"));
         hudModeEl.textContent = state.cameraError
-          ? "摄像头错误"
-          : (state.interactive ? "已锁定" : ((state.sceneReady || state.everFound) ? "扫描中" : "等待摄像头"));
+          ? "相機錯誤"
+          : (state.interactive ? "已鎖定" : ((state.sceneReady || state.everFound) ? "掃描中" : "等待相機"));
         hudModeEl.classList.toggle("ok", state.interactive);
-
         scanGuideEl.classList.toggle("is-hidden", state.interactive);
-        swipeHintEl.hidden = !(state.interactive && total > 1);
-        swipeHintEl.style.opacity = state.interactive && total > 1 ? "1" : "0";
+        swipeHintEl.hidden = !(state.interactive && total > 1 && !state.panelOpen);
         updateDots();
+
+        panelPrevEl.disabled = !state.interactive || total < 2;
+        panelNextEl.disabled = !state.interactive || total < 2;
+        panelOpenBtnEl.hidden = !(state.interactive && page && PANEL_TYPES.has(page.contentType) && !state.panelOpen);
+        videoSoundBtnEl.hidden = !(state.interactive && page && page.contentType === "video" && state.activeVideo);
+        videoSoundBtnEl.textContent = state.videoMuted ? "開啟聲音" : "靜音";
+
+        if (state.panelOpen) {
+          panelKickerEl.textContent = (page ? TYPE_LABELS[page.contentType] : "內容") +
+            " · " + pad2(safePage + 1) + " / " + pad2(Math.max(1, total)) +
+            (state.interactive ? "" : " · 卡蓋已離開");
+        }
       }
 
-      // =====================================================================
-      // 滑动切换：只有 targetFound 后 interactive === true 才生效
-      // =====================================================================
+      videoSoundBtnEl.addEventListener("click", async () => {
+        if (!state.activeVideo) return;
+        state.videoMuted = !state.videoMuted;
+        state.activeVideo.muted = state.videoMuted;
+        try { await state.activeVideo.play(); } catch (err) { /* noop */ }
+        updateHud();
+      });
+
+      /* ============================== touch / swipe ============================== */
       window.addEventListener("touchstart", (event) => {
-        if (!state.interactive || event.touches.length !== 1) {
+        if (!state.interactive || event.touches.length !== 1) { touchStart = null; return; }
+        if (event.target.closest && event.target.closest("button, input, textarea, select, a, #contentPanel")) {
           touchStart = null;
           return;
         }
-        if (event.target.closest && event.target.closest("button, input, textarea")) {
-          touchStart = null;
-          return;
-        }
-        const touch = event.touches[0];
-        touchStart = { x: touch.clientX, y: touch.clientY };
+        const t = event.touches[0];
+        touchStart = { x: t.clientX, y: t.clientY };
       }, { passive: true });
 
-      window.addEventListener("touchmove", () => {
-        // 只需要 touchend 的最终位移；保持 passive，避免拦截页面手势。
-      }, { passive: true });
+      window.addEventListener("touchmove", () => { /* 只需要 touchend 的位移 */ }, { passive: true });
 
       window.addEventListener("touchend", (event) => {
-        if (!touchStart || !state.interactive) {
-          touchStart = null;
-          return;
-        }
-        const touch = event.changedTouches[0];
-        const dx = touch.clientX - touchStart.x;
-        const dy = touch.clientY - touchStart.y;
+        if (!touchStart || !state.interactive) { touchStart = null; return; }
+        const t = event.changedTouches[0];
+        const dx = t.clientX - touchStart.x;
+        const dy = t.clientY - touchStart.y;
         touchStart = null;
-
         if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
           goToPage(state.currentPage + (dx < 0 ? 1 : -1));
         }
       }, { passive: true });
 
-      window.addEventListener("touchcancel", () => {
-        touchStart = null;
-      }, { passive: true });
-
+      window.addEventListener("touchcancel", () => { touchStart = null; }, { passive: true });
       window.addEventListener("keydown", (event) => {
-        if (event.key !== "Escape") return;
-        if (!arHudEl.hidden) exitAr();
+        if (event.key === "Escape" && !arHudEl.hidden) exitAr();
       });
 
-      // =====================================================================
-      // 退出：停摄像头、销毁 scene、释放 Blob URL
-      // =====================================================================
+      /* ============================== teardown ============================== */
+      function disposePageCaches() {
+        state.targets.forEach((target) => {
+          [target._textTexture, target._imageTexture, target._videoTexture].forEach((texture) => {
+            if (texture) { try { texture.dispose(); } catch (err) { /* noop */ } }
+          });
+          if (target._video) {
+            try { target._video.pause(); } catch (err) { /* noop */ }
+            try { target._video.remove(); } catch (err) { /* noop */ }
+          }
+          target._textTexture = null;
+          target._imageTexture = null;
+          target._imagePromise = null;
+          target._videoTexture = null;
+          target._videoPromise = null;
+          target._video = null;
+          target._aspect = null;
+        });
+        state.activeVideo = null;
+      }
+
       function teardownScene() {
         const sceneEl = state.sceneEl;
-        if (!sceneEl) {
-          arRootEl.replaceChildren();
-          return;
-        }
-
+        if (!sceneEl) { arRootEl.replaceChildren(); return; }
         const system = sceneEl.systems && sceneEl.systems["mindar-image-system"];
         if (system) {
           try {
@@ -2035,31 +2887,12 @@
               if (video.parentNode) video.parentNode.removeChild(video);
               system.video = null;
             }
-          } catch (err) {
-            console.warn("[AR] 停止视频失败", err);
-          }
-          try {
-            if (system.controller) system.controller.dispose();
-          } catch (err) {
-            console.warn("[AR] dispose controller 失败", err);
-          }
-          // 防止 a-scene 的 remove 生命周期再次调用原始 stop() 时重复报错。
+          } catch (err) { console.warn("[ID Card] 停止相機失敗", err); }
+          try { if (system.controller) system.controller.dispose(); } catch (err) { /* noop */ }
           system.stop = function () {};
         }
-
-        try {
-          if (sceneEl.parentNode) sceneEl.parentNode.removeChild(sceneEl);
-        } catch (err) {
-          console.warn("[AR] 移除 scene 失败", err);
-        }
+        try { if (sceneEl.parentNode) sceneEl.parentNode.removeChild(sceneEl); } catch (err) { /* noop */ }
         arRootEl.replaceChildren();
-      }
-
-      function disposeTextures() {
-        state.textures.forEach((texture) => {
-          try { texture.dispose(); } catch (err) { /* noop */ }
-        });
-        state.textures = [];
       }
 
       function releaseWakeLock() {
@@ -2073,47 +2906,43 @@
         if (!("wakeLock" in navigator) || state.wakeLock) return;
         try {
           const lock = await navigator.wakeLock.request("screen");
-          if (state.sceneEl) {
-            state.wakeLock = lock;
-          } else {
-            // 请求返回时用户已经退出 AR，立刻释放。
-            try { lock.release(); } catch (err) { /* noop */ }
-          }
-        } catch (err) {
-          // 不支持或系统拒绝都没关系。
-        }
+          if (state.sceneEl) state.wakeLock = lock;
+          else { try { lock.release(); } catch (err) { /* noop */ } }
+        } catch (err) { /* noop */ }
       }
 
       function exitAr() {
         if (arHudEl.hidden && setupEl.hidden === false) return;
-
         state.interactive = false;
         state.everFound = false;
         state.cameraError = false;
         state.activeTarget = -1;
         state.activeCard = null;
         state.sceneReady = false;
+        state.panelOpen = false;
+        state.panelPage = -1;
+        state.videoMuted = true;
+        state.renderToken++;
         touchStart = null;
         window.clearTimeout(state.readyTimer);
         state.readyTimer = null;
 
         showCompileOverlay(false);
         errorPanelEl.hidden = true;
+        closePanel();
+        stopActiveVideo();
         teardownScene();
         state.sceneEl = null;
         state.cards = [];
+        disposePageCaches();
 
-        if (state.mindUrl) {
-          URL.revokeObjectURL(state.mindUrl);
-          state.mindUrl = null;
-        }
-        disposeTextures();
+        if (state.mindUrl) { URL.revokeObjectURL(state.mindUrl); state.mindUrl = null; }
         releaseWakeLock();
 
         arRootEl.hidden = true;
         arHudEl.hidden = true;
         setupEl.hidden = false;
-        document.body.classList.remove("ar-active");
+        document.body.classList.remove("ar-active", "panel-open");
         state.currentPage = 0;
         state.compiling = false;
         updateEnterButton();
@@ -2128,19 +2957,19 @@
       window.addEventListener("beforeunload", () => {
         state.targets.forEach((target) => {
           if (target.previewUrl) URL.revokeObjectURL(target.previewUrl);
+          if (target.contentObjectUrl) URL.revokeObjectURL(target.contentObjectUrl);
         });
         if (state.mindUrl) URL.revokeObjectURL(state.mindUrl);
         releaseWakeLock();
       });
 
-      // 初始化
+      /* ============================== init ============================== */
+      updateSettingsUi();
       renderCards();
       updateHud();
-      if (!window.AFRAME) {
-        toast("A-Frame 加载失败，请检查网络后刷新。", 6000);
-      } else if (!getCompilerClass()) {
-        toast("MindAR 加载失败，请检查网络后刷新。", 6000);
-      }
+      restoreSession();
+      if (!window.AFRAME) toast("A-Frame 載入失敗，請檢查網路後重新整理。", 6000);
+      else if (!getCompilerClass()) toast("MindAR 載入失敗，請檢查網路後重新整理。", 6000);
     })();
   </script>
 </body>

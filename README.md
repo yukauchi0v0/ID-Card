@@ -1,6 +1,8 @@
-# WebAR Card
+# ID Card · WebAR
 
-單檔 WebAR 頁面：上傳 1–8 張識別圖，在瀏覽器端編譯成 MindAR `.mind`，掃描後用 `<a-curvedimage>` 顯示由 Canvas 即時生成的弧形資訊卡。
+單檔 WebAR 頁面：用悠遊卡滑蓋卡套的不同圖案當識別 target，掃到哪一格，就在卡片上方顯示對應的平面內容。支援文字、照片、上傳影片、YouTube／Vimeo、互動網頁與 PDF。
+
+**Live Demo：** https://yukauchi0v0.github.io/webar-card/
 
 ## 技術
 
@@ -11,16 +13,42 @@
 
 ## 功能
 
-- 上傳多張識別圖（最多 8 張），每張可填標題與多行正文
-- 瀏覽器端 `compileImageTargets → exportData → Blob URL`
-- 動態建立 `<a-scene>`，每張圖對應一個 `mindar-image-target`
-- 弧形畫面顯示使用者填寫的文字，不顯示識別圖本身
-- 鎖定識別圖後可左右滑動循環切換頁面
-- 返回時停止攝影機、銷毀場景、釋放 Blob URL
+- 上傳 1–8 個卡蓋圖案，順序即為卡蓋位置 1、2、3…
+- 每個圖案可設定一種內容：
+  - 平面文字
+  - 照片／PNG
+  - 上傳影片（MP4／WebM）
+  - 影片連結（YouTube／Vimeo／直接影片 URL）
+  - 互動網頁（下方內容面板）
+  - PDF（下方內容面板）
+- 瀏覽器端 `compileImageTargets → exportData → Blob URL` 編譯 `.mind`
+- 平面內容可調位置（上／下／左／右／正中）、與卡片間距、X／Y 偏移、大小、平放／面向鏡頭
+- 卡片比例以悠遊卡 85.6 × 54 mm 為基準
+- 2D 內容面板：網頁、YouTube／Vimeo、PDF 用可互動的下方面板開啟
+- 鎖定後可左右滑動切換頁面；卡蓋圖案切換也會自動切到對應頁
+- 追蹤穩定度預設：穩定（可切平衡／靈敏）
+- 編譯成功後，卡蓋圖案、內容、設定與 `.mind` 會存在這台手機的 IndexedDB，重新整理可繼續，第二次進入通常不需重新編譯
+- 返回時停止相機、銷毀場景、釋放 Blob URL
+
+## 使用方式
+
+1. 上傳卡蓋圖案（建議只拍圖案本身，避免大面積背景）。
+2. 為每個圖案選擇內容類型，填入文字或選擇檔案／網址。
+3. 在「AR 顯示位置」調整內容位置與大小；預設是卡片上方、平放、間距 0.45 cm。
+4. 按「編譯並進入 AR」，允許相機權限。
+5. 把鏡頭對準卡蓋圖案。若內容超出畫面，把手機往後退或把內容縮小。
+
+## 辨識與抖動
+
+- MindAR 是靠紋理與角點追蹤，不是理解卡片；大面積素色、反光或特徵太少的圖案會較不穩。
+- 卡套表面反光會造成明顯抖動，霧面卡套或霧面貼膜通常比調參數有效。
+- 預設使用「穩定」預設值（`filterMinCF: 0.0005`、`filterBeta: 100`、`missTolerance: 12`）。如果覺得慢半拍，可在設定改成「平衡」或「靈敏」。
+- 內容離卡片越遠、越大，視覺上的抖動會被放大；先把大小降到 70–80% 測試。
+- 掃描框已改成悠遊卡比例；讓圖案填滿框、避免反光。
 
 ## 本機預覽
 
-攝影機需要 HTTPS 或 localhost。可在這個目錄啟動一個靜態伺服器：
+相機需要 HTTPS 或 localhost。在這個目錄啟動靜態伺服器：
 
 ```bash
 npx serve .
@@ -28,26 +56,34 @@ npx serve .
 python -m http.server 8000
 ```
 
-然後開啟 `http://localhost:8000`。
+開啟 `http://localhost:8000`。
 
 ## 部署
 
-### Netlify Drop
-
-把 `index.html` 拖到 Netlify Drop（不要連 `.git` 目錄一起上傳），取得 HTTPS 網址即可用手機測試。
-
 ### GitHub Pages
 
-GitHub Pages 需要倉庫是可公開讀取的（或方案支援 private Pages）：
+此倉庫已開啟 GitHub Pages（`main` / root）：
 
-1. 將此倉庫推到 GitHub。
-2. Settings → Pages → Build and deployment。
-3. Source 選 `Deploy from a branch`，Branch 選 `main`，資料夾選 `/ (root)`。
-4. 開啟產生的 `https://<帳號>.github.io/<repo>/`。
+- https://yukauchi0v0.github.io/webar-card/
 
-## 使用提醒
+每次 push 到 `main` 會自動重新部署。
 
-- 識別圖只負責觸發。AR 畫面內容來自表單文字，與識別圖外觀無關。
-- 請使用紋理豐富、對比明顯的圖片；特徵點太少的圖可能不容易被追蹤。
-- 第一次編譯在手機上可能需要數秒到數十秒，全部在本機完成，不會上傳圖片。
+### Netlify Drop
+
+也可以把 `index.html` 拖到 Netlify Drop（不要連 `.git` 目錄一起上傳）。
+
+## 檔案
+
+- `index.html`：完整應用程式
+- `README.md`：本說明
+
+## 版本
+
+- `v0.1.0`：最初的弧形文字卡版本
+- 目前 `main`：平面內容、卡蓋多 target、內容面板、位置控制、本機儲存
+
+## 備註
+
+- 第二版才會加入 3D 模型、GIF 動畫與音訊。
 - iOS 請使用 Safari 16.4+，並允許相機權限。
+- 本機設定只存在目前瀏覽器；換手機或無痕模式不會同步。
