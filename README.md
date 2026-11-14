@@ -34,9 +34,11 @@ python -m http.server 8000
 
 ### Netlify Drop
 
-把整個資料夾拖到 Netlify Drop，取得 HTTPS 網址即可用手機測試。
+把 `index.html` 拖到 Netlify Drop（不要連 `.git` 目錄一起上傳），取得 HTTPS 網址即可用手機測試。
 
 ### GitHub Pages
+
+GitHub Pages 需要倉庫是可公開讀取的（或方案支援 private Pages）：
 
 1. 將此倉庫推到 GitHub。
 2. Settings → Pages → Build and deployment。
