@@ -1,0 +1,116 @@
+/* Compile overlay, error panel and toast */
+/* ============================== OVERLAYS ============================== */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(246, 246, 246, 0.76);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.compile-card {
+  width: min(100%, 390px);
+  padding: 30px 28px 24px;
+  border: 1px solid var(--line);
+  border-radius: 25px;
+  background: #fff;
+  box-shadow: 0 30px 90px rgba(31, 47, 47, 0.18);
+  text-align: center;
+}
+
+.compile-orbit {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 20px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+}
+
+.compile-orbit::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px solid transparent;
+  border-top-color: var(--mint-strong);
+  border-right-color: rgba(103, 191, 174, 0.3);
+  border-radius: 50%;
+  animation: spin 1.1s linear infinite;
+}
+
+.compile-orbit::after {
+  content: "";
+  position: absolute;
+  inset: 20px;
+  border-radius: 50%;
+  background: var(--mint);
+  box-shadow: 0 0 22px rgba(103, 191, 174, 0.65);
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.compile-kicker { color: var(--mint-strong); font-size: 9px; font-weight: 800; letter-spacing: 0.22em; }
+.compile-card h2 { margin: 10px 0 0; font-size: 20px; letter-spacing: -0.02em; }
+.compile-card p { margin: 9px 0 0; color: var(--muted); font-size: 11.5px; line-height: 1.6; }
+
+.progress { height: 5px; margin-top: 24px; overflow: hidden; border-radius: 999px; background: var(--blue-soft); }
+#progressBar { width: 0%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--mint-strong), var(--mint)); box-shadow: 0 0 18px rgba(103, 191, 174, 0.38); transition: width 0.2s ease; }
+.compile-meta { display: flex; justify-content: space-between; margin-top: 9px; color: #9aa7a7; font-size: 9.5px; letter-spacing: 0.05em; font-variant-numeric: tabular-nums; }
+
+.error-panel {
+  pointer-events: auto;
+  position: absolute;
+  inset: 0;
+  z-index: 55;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(246, 246, 246, 0.76);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.error-card {
+  width: min(100%, 390px);
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 28px 80px rgba(31, 47, 47, 0.16);
+  text-align: center;
+}
+
+.error-icon { display: grid; place-items: center; width: 44px; height: 44px; margin: 0 auto 15px; border: 1px solid rgba(217, 94, 94, 0.3); border-radius: 50%; color: var(--danger); background: var(--blush-soft); font-size: 20px; font-weight: 800; }
+.error-card h2 { margin: 0; font-size: 19px; }
+.error-card p { margin: 11px 0 0; color: var(--muted); font-size: 12px; line-height: 1.7; text-align: left; }
+.error-card button { width: 100%; min-height: 46px; margin-top: 20px; border: 1px solid var(--line-strong); border-radius: 12px; color: var(--ink); background: var(--mint-soft); font-size: 13px; font-weight: 750; cursor: pointer; }
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: max(108px, calc(env(safe-area-inset-bottom) + 92px));
+  z-index: 200;
+  width: max-content;
+  max-width: min(88vw, 520px);
+  padding: 11px 15px;
+  transform: translate(-50%, 8px);
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 16px 44px rgba(31, 47, 47, 0.16);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.toast.show { opacity: 1; transform: translate(-50%, 0); }

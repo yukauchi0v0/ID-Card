@@ -1,0 +1,29 @@
+/* Responsive and reduced-motion rules */
+@media (max-width: 680px) {
+  .target-top { grid-template-columns: 74px minmax(0, 1fr) 28px; gap: 10px; }
+  .thumb { width: 74px; height: 74px; }
+  .settings-grid { grid-template-columns: 1fr; }
+  .diagram { height: 190px; }
+  .two-col { grid-template-columns: 1fr; }
+  .action-bar {
+    position: static;
+    bottom: auto;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px;
+    gap: 9px;
+  }
+  .action-note { text-align: center; }
+  .primary-btn { width: 100%; }
+  .content-panel-head { gap: 5px; padding: 8px 9px; }
+  .panel-link { padding: 0 8px; }
+  #contentPanel { height: min(50vh, 430px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

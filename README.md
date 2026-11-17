@@ -1,6 +1,6 @@
 # ID Card · WebAR
 
-單檔 WebAR 頁面：用悠遊卡滑蓋卡套的不同圖案當識別 target，掃到哪一格，就在卡片上方顯示對應的平面內容。支援文字、照片、上傳影片、YouTube／Vimeo、互動網頁與 PDF。
+用悠遊卡滑蓋卡套的不同圖案當識別 target，掃到哪一格，就在卡片上方顯示對應的平面內容。支援文字、照片、上傳影片、YouTube／Vimeo、互動網頁與 PDF。
 
 **Live Demo：** https://yukauchi0v0.github.io/webar-card/
 
@@ -8,7 +8,8 @@
 
 - A-Frame 1.5.0
 - MindAR 1.2.2
-- 純前端、單一 `index.html`、CDN 載入
+- 原生 ES Modules（native ESM），不需要 build step
+- 純前端；相機、編譯、Storage 都在瀏覽器本機完成
 - 不需要 Unity、不需要後端
 
 ## 功能
@@ -38,13 +39,58 @@
 4. 按「編譯並進入 AR」，允許相機權限。
 5. 把鏡頭對準卡蓋圖案。若內容超出畫面，把手機往後退或把內容縮小。
 
-## 辨識與抖動
+## 專案結構
 
-- MindAR 是靠紋理與角點追蹤，不是理解卡片；大面積素色、反光或特徵太少的圖案會較不穩。
-- 卡套表面反光會造成明顯抖動，霧面卡套或霧面貼膜通常比調參數有效。
-- 預設使用「穩定」預設值（`filterMinCF: 0.0005`、`filterBeta: 100`、`missTolerance: 12`）。如果覺得慢半拍，可在設定改成「平衡」或「靈敏」。
-- 內容離卡片越遠、越大，視覺上的抖動會被放大；先把大小降到 70–80% 測試。
-- 掃描框已改成悠遊卡比例；讓圖案填滿框、避免反光。
+```text
+index.html                  頁面 markup、CDN 載入、module entry
+styles.css                  CSS entry，只負責 @import
+styles/
+  tokens.css                色票、字型、間距變數
+  base.css                  reset、頁面底色、通用元素
+  setup.css                 上傳區、卡蓋卡片、action bar、footer
+  settings.css              AR 顯示位置與示意圖
+  ar.css                    AR HUD、掃描框、圓點、影片聲音按鈕
+  panel.css                 2D 內容面板
+  overlays.css              編譯 overlay、錯誤面板、toast
+  responsive.css            手機／窄螢幕覆寫，最後載入
+js/
+  main.js                   入口，只呼叫 initApp()
+  app.js                    流程協調：驗證、enterAr、exitAr、手勢、wake lock
+  config.js                 常數、內容類型、追蹤預設、預設文字
+  state.js                  集中 mutable state
+  dom.js                    集中 DOM refs，缺少元素會直接報錯
+  events.js                 小型 event bus（HUD／panel 發出 page:request）
+  mindar-bundle-ref.js      保存 A-Frame bundle 的 MINDAR.IMAGE.Compiler
+  ui/
+    targets.js              上傳、縮圖、內容編輯器、拖放
+    settings.js             位置／間距／大小／方向／穩定度
+    hud.js                  HUD、頁碼、圓點
+    toast.js
+    compile-overlay.js
+    enter-button.js
+  ar/
+    scene.js                動態建立 a-scene、target anchors、teardown
+    content.js              平面內容 layout、targetFound/Lost、換頁
+    panel.js                2D 內容面板
+  media/
+    compiler.js             MindAR Compiler 取得與特徵數檢查
+    textures.js             文字／照片／影片 texture、快取與清理
+    embeds.js               YouTube／Vimeo URL 處理
+  storage/
+    session.js              IndexedDB save/restore/clear
+  utils/
+    files.js                圖片載入、壓縮、檔案限制
+    format.js               pad2、clamp、escapeHtml、nextPaint
+    canvas.js               Canvas 文字換行
+```
+
+### 依賴方向
+
+- `main.js` → `app.js` → UI／AR／media／storage
+- UI 只讀寫 `state` 與 `dom`，不直接建立 scene
+- `ar/content.js` 透過 `events.js` 回應 HUD／panel 的換頁請求，避免循環依賴
+- `ar/scene.js` 只負責 A-Frame 與 MindAR 的生命週期
+- `storage/session.js` 是最後一層，負責把 state 與 Blob 寫進 IndexedDB
 
 ## 本機預覽
 
@@ -56,7 +102,7 @@ npx serve .
 python -m http.server 8000
 ```
 
-開啟 `http://localhost:8000`。
+開啟 `http://localhost:8000`。這是 native ESM，請不要用 `file://` 直接開。
 
 ## 部署
 
@@ -66,21 +112,25 @@ python -m http.server 8000
 
 - https://yukauchi0v0.github.io/webar-card/
 
-每次 push 到 `main` 會自動重新部署。
+每次 push 到 `main` 會自動重新部署。`styles/`、`js/` 與 `index.html` 會一起部署，沒有 build 產物。
 
 ### Netlify Drop
 
-也可以把 `index.html` 拖到 Netlify Drop（不要連 `.git` 目錄一起上傳）。
+把整個專案資料夾（包含 `index.html`、`styles.css`、`styles/`、`js/`）拖到 Netlify Drop，不要只拖 `index.html`，也不要把 `.git` 一起上傳。
 
-## 檔案
+## 辨識與抖動
 
-- `index.html`：完整應用程式
-- `README.md`：本說明
+- MindAR 是靠紋理與角點追蹤，不是理解卡片；大面積素色、反光或特徵太少的圖案會較不穩。
+- 卡套表面反光會造成明顯抖動，霧面卡套或霧面貼膜通常比調參數有效。
+- 預設使用「穩定」預設值（`filterMinCF: 0.0005`、`filterBeta: 100`、`missTolerance: 12`）。如果覺得慢半拍，可在設定改成「平衡」或「靈敏」。
+- 內容離卡片越遠、越大，視覺上的抖動會被放大；先把大小降到 70–80% 測試。
+- 掃描框已改成悠遊卡比例；讓圖案填滿框、避免反光。
 
 ## 版本
 
 - `v0.1.0`：最初的弧形文字卡版本
-- 目前 `main`：平面內容、卡蓋多 target、內容面板、位置控制、本機儲存
+- `v0.2.0`：平面內容、卡蓋多 target、內容面板、位置控制、本機儲存
+- `refactor/modular-structure`：把單檔拆成 native ESM 模組與分層 CSS，行為不變
 
 ## 備註
 

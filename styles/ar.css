@@ -1,0 +1,235 @@
+/* AR HUD, scan guide, pager and 3D content frame */
+/* ============================== AR ============================== */
+#arRoot { position: fixed; inset: 0; overflow: hidden; touch-action: none; }
+
+#arRoot a-scene {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+}
+
+#arRoot canvas.a-canvas { width: 100% !important; height: 100% !important; }
+
+#arHud {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+  color: var(--ink);
+  background:
+    linear-gradient(to bottom, rgba(246, 246, 246, 0.72), rgba(246, 246, 246, 0) 22%),
+    linear-gradient(to top, rgba(246, 246, 246, 0.56), rgba(246, 246, 246, 0) 26%);
+}
+
+.hud-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: max(14px, env(safe-area-inset-top)) 14px 0;
+}
+
+.icon-btn {
+  pointer-events: auto;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 0 14px 0 11px;
+  border: 1px solid rgba(31, 47, 47, 0.13);
+  border-radius: 999px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.88);
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(57, 84, 84, 0.12);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.hud-title { min-width: 0; flex: 1; padding-top: 1px; text-align: center; }
+
+.hud-title span {
+  display: block;
+  color: rgba(31, 47, 47, 0.5);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+}
+
+.hud-title strong {
+  display: block;
+  margin-top: 4px;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.35;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 12px rgba(255, 255, 255, 0.8);
+}
+
+.mode-pill {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid rgba(31, 47, 47, 0.12);
+  border-radius: 999px;
+  color: var(--ink-soft);
+  background: rgba(255, 255, 255, 0.86);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  box-shadow: 0 8px 24px rgba(57, 84, 84, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.mode-pill::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--mint-strong);
+  box-shadow: 0 0 10px rgba(103, 191, 174, 0.9);
+}
+
+.mode-pill.ok { color: #276353; border-color: rgba(103, 191, 174, 0.28); background: var(--mint-soft); }
+.mode-pill.ok::before { background: var(--mint-strong); }
+
+.scan-guide {
+  position: absolute;
+  top: 46%;
+  left: 50%;
+  width: min(68vw, 316px);
+  aspect-ratio: 85.6 / 54;
+  transform: translate(-50%, -50%);
+  opacity: 1;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.scan-guide.is-hidden { opacity: 0; transform: translate(-50%, -50%) scale(0.92); }
+
+.scan-guide::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px dashed rgba(255, 255, 255, 0.68);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: 0 0 0 1px rgba(31, 47, 47, 0.12) inset;
+}
+
+.guide-corner {
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  border-color: var(--mint);
+  border-style: solid;
+  filter: drop-shadow(0 0 10px rgba(103, 191, 174, 0.6));
+}
+
+.guide-corner.tl { top: -2px; left: -2px; border-width: 3px 0 0 3px; border-radius: 15px 0 0 0; }
+.guide-corner.tr { top: -2px; right: -2px; border-width: 3px 3px 0 0; border-radius: 0 15px 0 0; }
+.guide-corner.bl { bottom: -2px; left: -2px; border-width: 0 0 3px 3px; border-radius: 0 0 0 15px; }
+.guide-corner.br { bottom: -2px; right: -2px; border-width: 0 3px 3px 0; border-radius: 0 0 15px 0; }
+
+.scan-guide p {
+  position: absolute;
+  top: calc(100% + 15px);
+  left: 50%;
+  width: max-content;
+  max-width: 86vw;
+  margin: 0;
+  transform: translateX(-50%);
+  padding: 8px 13px;
+  border-radius: 999px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 9px 28px rgba(57, 84, 84, 0.14);
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.4;
+  text-align: center;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.hud-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px max(20px, env(safe-area-inset-bottom));
+  transition: opacity 0.2s ease;
+}
+
+body.panel-open .hud-bottom { opacity: 0; pointer-events: none; }
+
+.dots { display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 24px; pointer-events: auto; }
+
+.dot {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 1px 4px rgba(31, 47, 47, 0.18);
+  cursor: pointer;
+  transition: width 0.24s ease, background 0.24s ease, opacity 0.24s ease;
+}
+
+.dot.active { width: 25px; background: var(--mint-strong); }
+.dot:disabled { cursor: default; opacity: 0.55; }
+
+.hud-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  color: var(--ink-soft);
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: 0 8px 24px rgba(57, 84, 84, 0.1);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.hud-meta .sep { width: 1px; height: 10px; background: var(--line-strong); }
+
+.video-sound-btn, .panel-open-btn {
+  position: fixed;
+  right: 16px;
+  bottom: max(94px, calc(env(safe-area-inset-bottom) + 80px));
+  z-index: 32;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid rgba(31, 47, 47, 0.13);
+  border-radius: 999px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 9px 28px rgba(57, 84, 84, 0.14);
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}

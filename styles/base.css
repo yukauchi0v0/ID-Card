@@ -1,0 +1,28 @@
+/* Reset and document defaults */
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  color: var(--ink);
+  background: var(--bg);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  min-height: 100dvh;
+  overflow-x: hidden;
+  background:
+    radial-gradient(900px 480px at -8% -10%, rgba(153, 221, 204, 0.42), transparent 60%),
+    radial-gradient(760px 500px at 108% 6%, rgba(186, 215, 223, 0.5), transparent 62%),
+    radial-gradient(560px 420px at 70% 100%, rgba(255, 226, 226, 0.7), transparent 65%),
+    var(--bg);
+}
+
+body.ar-active { overflow: hidden; overscroll-behavior: none; }
+button, input, textarea, select { font: inherit; }
+button { -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 2px solid var(--mint-strong); outline-offset: 3px; }
