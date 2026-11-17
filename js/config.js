@@ -57,6 +57,16 @@ export const DEFAULT_SETTINGS = {
   stability: "stable"
 };
 
+export const DEFAULT_PROFILE = {
+  name: "",
+  title: "",
+  company: "",
+  phone: "",
+  email: "",
+  website: "",
+  slug: ""
+};
+
 export const CONTENT_FILE_LIMITS = {
   video: 100 * 1024 * 1024,
   pdf: 40 * 1024 * 1024,

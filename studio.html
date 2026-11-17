@@ -25,7 +25,25 @@
       <section class="panel">
         <div class="panel-head">
           <div>
-            <h2>01 · 卡蓋圖案與內容</h2>
+            <h2>01 · 名片資訊</h2>
+            <p>這些欄位會顯示在觀看端的普通名片頁；空白欄位不會顯示。</p>
+          </div>
+        </div>
+        <div class="profile-grid">
+          <label class="field"><span>姓名</span><input id="profileName" maxlength="60" autocomplete="name" /></label>
+          <label class="field"><span>職稱</span><input id="profileTitle" maxlength="80" autocomplete="organization-title" /></label>
+          <label class="field"><span>公司</span><input id="profileCompany" maxlength="80" autocomplete="organization" /></label>
+          <label class="field"><span>電話</span><input id="profilePhone" type="tel" maxlength="40" autocomplete="tel" /></label>
+          <label class="field"><span>Email</span><input id="profileEmail" type="email" maxlength="120" autocomplete="email" /></label>
+          <label class="field"><span>網站</span><input id="profileWebsite" type="url" maxlength="200" placeholder="https://" autocomplete="url" /></label>
+          <label class="field"><span>卡片網址代稱（slug）</span><input id="profileSlug" maxlength="40" pattern="[a-z0-9-]*" placeholder="my-card" /></label>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>02 · 卡蓋圖案與內容</h2>
             <p>最多 8 張。這個順序就是卡蓋圖案 1、2、3…；掃到哪一張，就先顯示哪一頁。</p>
           </div>
           <span id="countBadge" class="badge">0 / 8</span>
@@ -46,7 +64,7 @@
       <section class="panel">
         <div class="panel-head">
           <div>
-            <h2>02 · AR 顯示位置</h2>
+            <h2>03 · AR 顯示位置</h2>
             <p>平面內容會出現在卡片周圍；預設在卡片上方、貼著卡面，不覆蓋卡片。</p>
           </div>
         </div>
@@ -123,9 +141,12 @@
 
       <div class="action-bar">
         <div class="action-note">第一次編譯在手機上可能需要數秒；全部在本機完成，不會上傳你的卡面。</div>
-        <button id="enterBtn" class="primary-btn" type="button" disabled>
-          <span>編譯並進入 AR</span><span class="arrow">→</span>
-        </button>
+        <div class="action-actions">
+          <button id="enterBtn" class="primary-btn" type="button" disabled>
+            <span>編譯並進入 AR</span><span class="arrow">→</span>
+          </button>
+          <button id="publishBtn" class="secondary-btn" type="button">下載卡片包</button>
+        </div>
       </div>
       <footer class="foot">
         A-Frame 1.5.0 · MindAR 1.2.2 · 需要 HTTPS / localhost 相機權限
@@ -150,6 +171,7 @@
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
   <!-- 保留 A-Frame bundle 的 MINDAR 命名空間，避免稍後執行的 core ESM 覆蓋。 -->
   <script src="js/mindar-bundle-ref.js"></script>
+  <script src="vendor/fflate.js"></script>
 
   <script type="module" src="js/studio/main.js"></script>
 </body>

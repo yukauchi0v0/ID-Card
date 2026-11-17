@@ -6,6 +6,7 @@ import { countCompiledFeatures, getCompilerClass } from "../media/compiler.js";
 import { setCompileProgress, showCompileOverlay } from "./ui/compile-overlay.js";
 import { initTargets, renderCards } from "./ui/targets.js";
 import { initSettings, updateSettingsUi } from "./ui/settings.js";
+import { initProfile } from "./profile.js";
 import { initArUi, startAr, stopAr } from "../ar/runtime.js";
 import { arDom } from "../ar/dom.js";
 import {
@@ -162,6 +163,7 @@ export function initApp() {
 
   updateSettingsUi();
   renderCards();
+  initProfile();
   restoreSession();
 
   arDom.backBtn.addEventListener("click", exitAr);

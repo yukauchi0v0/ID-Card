@@ -3,9 +3,11 @@ import { studioState as state } from "./state.js";
 import { studioDom as dom } from "./dom.js";
 import { pad2 } from "../utils/format.js";
 import { loadImage, prepareImageForCompiler } from "../utils/files.js";
+import { slugify } from "../utils/slug.js";
 import { renderCards } from "./ui/targets.js";
 import { updateSettingsUi } from "./ui/settings.js";
 import { updateEnterButton } from "./ui/enter-button.js";
+import { renderProfile } from "./profile.js";
 import { toast } from "../shared/toast.js";
 
 export function targetSignature() {
@@ -35,6 +37,7 @@ export async function saveSession() {
     const payload = {
       version: 1,
       savedAt: Date.now(),
+      profile: Object.assign({}, state.profile),
       settings: Object.assign({}, state.settings),
       signature: state.mindSignature,
       mindBlob: state.mindBlob,
@@ -123,9 +126,12 @@ export async function restoreSession() {
 
     state.targets = restored;
     state.uid = Math.max.apply(null, restored.map((target) => target.id).concat([state.uid]));
+    state.profile = Object.assign({}, state.profile, record.profile || {});
+    state.profile.slug = slugify(state.profile.slug || state.profile.name);
     state.settings = Object.assign({}, state.settings, record.settings || {});
     state.mindBlob = record.mindBlob || null;
     state.mindSignature = record.signature || "";
+    renderProfile();
     updateSettingsUi();
     renderCards();
     toast("已載入上次儲存在這台手機的設定。", 3600);
