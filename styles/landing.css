@@ -1,7 +1,13 @@
+/*
+ * 首頁（入口選單）。
+ * 只有兩張卡：觀看端是靜態說明（需要 QR/完整 URL），製作端才是連結。
+ */
 @import "tokens.css";
 @import "base.css";
 
 body { min-height: 100vh; }
+
+/* 桌面上置中，手機上自然變成單欄。 */
 .landing { min-height: 100vh; display: grid; place-items: center; padding: 32px 20px; }
 .landing-inner { width: min(900px, 100%); }
 .eyebrow {
@@ -17,6 +23,8 @@ body { min-height: 100vh; }
   font-weight: 750;
   letter-spacing: 0.18em;
 }
+
+/* 兩欄入口卡；640px 以下改成單欄。 */
 .entry-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 32px; }
 .entry-card {
   display: block;
@@ -29,6 +37,8 @@ body { min-height: 100vh; }
   transition: transform 180ms ease, border-color 180ms ease;
 }
 .entry-card:hover { transform: translateY(-2px); border-color: rgba(31, 47, 47, 0.2); }
+
+/* 觀看卡不是連結，因此取消 hover 位移，避免看起來可點。 */
 .entry-card--static { cursor: default; }
 .entry-card--static:hover { transform: none; border-color: rgba(31, 47, 47, 0.1); }
 .entry-num { font-size: 11px; font-weight: 800; letter-spacing: 0.16em; color: var(--ink-soft); }

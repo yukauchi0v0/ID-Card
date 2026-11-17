@@ -1,11 +1,20 @@
-/* Design tokens */
+/*
+ * 全站設計變數（design tokens）。
+ * 顏色以 No.25 色票為底：薄荷綠、淡藍、淡粉與近白背景。
+ * 改這裡會同時影響 landing / studio / viewer / AR，先確認對比度再改。
+ */
 :root {
+  /* 背景與表面 */
   --bg: #f6f6f6;
   --surface: #ffffff;
   --surface-soft: #fbfcfc;
+
+  /* 文字 */
   --ink: #1f2f2f;
   --ink-soft: #415454;
   --muted: #718181;
+
+  /* 品牌色 */
   --mint: #99ddcc;
   --mint-strong: #67bfae;
   --mint-soft: #eaf9f4;
@@ -13,11 +22,15 @@
   --blue-soft: #eef7fa;
   --blush: #ffe2e2;
   --blush-soft: #fff3f3;
+
+  /* 邊線、危險色、圓角與陰影 */
   --line: rgba(31, 47, 47, 0.11);
   --line-strong: rgba(31, 47, 47, 0.19);
   --danger: #d95e5e;
   --radius: 26px;
   --shadow: 0 24px 70px rgba(57, 84, 84, 0.12);
+
+  /* 優先用 Apple 系統中文字型，再退回 Noto/微軟正黑 */
   --font: -apple-system, BlinkMacSystemFont, "SF Pro TC", "PingFang TC",
     "Hiragino Sans CNS", "Noto Sans TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
 }

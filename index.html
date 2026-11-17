@@ -9,12 +9,14 @@
   <link rel="stylesheet" href="styles/landing.css" />
 </head>
 <body>
+  <!-- 首頁只是入口選單，不載入 A-Frame/MindAR，讓手機先快速看到兩個選項。 -->
   <main class="landing">
     <div class="landing-inner">
       <p class="eyebrow">ID CARD · WEBAR</p>
       <h1>一張名片，<br />兩種入口。</h1>
       <p class="landing-lede">收到名片的人看內容；製作名片的人進入工作室。</p>
       <div class="entry-grid">
+        <!-- 觀看端必須帶 ?card=...，所以首頁這張卡刻意不可點，避免產生空連結。 -->
         <div class="entry-card entry-card--static">
           <span class="entry-num">01</span>
           <h2>觀看名片</h2>

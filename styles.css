@@ -1,4 +1,10 @@
-/* Entry stylesheet. Keep imports in cascade order. */
+/*
+ * 製作端樣式入口。
+ *
+ * 只做 @import，不直接寫樣式。順序就是 cascade 順序：
+ * 變數 → reset → 設定頁 → 位置控制 → AR → 面板 → 遮罩 → 製作端/share
+ * → 手機版覆寫。新增檔案時放在正確層級，不要全部塞到最後。
+ */
 @import url("./styles/tokens.css");
 @import url("./styles/base.css");
 @import url("./styles/setup.css");

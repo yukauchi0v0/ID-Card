@@ -9,6 +9,11 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <!--
+    製作端設定頁。三個 panel 依序是：
+    01 名片資料（viewer 的普通名片）→ 02 卡蓋圖與內容 → 03 AR 顯示位置。
+    AR 啟動後這個 main 會隱藏，由 js/ar/shell.js 注入的 HUD 接手。
+  -->
   <main id="setup">
     <div class="setup-inner">
       <header class="hero">
@@ -20,6 +25,7 @@
         </p>
       </header>
 
+      <!-- 01：名片資料。空白欄位在 viewer 會整列隱藏。 -->
       <section class="panel">
         <div class="panel-head">
           <div>
@@ -38,6 +44,7 @@
         </div>
       </section>
 
+      <!-- 02：卡蓋圖與內容。這個順序就是 AR 頁面 1、2、3…，最多 8 張。 -->
       <section class="panel">
         <div class="panel-head">
           <div>
@@ -59,6 +66,7 @@
         <p class="panel-note">編譯成功後，卡蓋圖案、內容與編譯結果會自動存在這台手機；重新整理可以繼續。換手機或無痕模式不會同步。</p>
       </section>
 
+      <!-- 03：AR 顯示位置。示意圖只是比例尺，真正的 3D 位置在 js/ar/content.js。 -->
       <section class="panel">
         <div class="panel-head">
           <div>
@@ -137,6 +145,7 @@
         </p>
       </section>
 
+      <!-- 固定在底部的操作列；手機上會變成一欄，按鈕全寬。 -->
       <div class="action-bar">
         <div class="action-note">第一次編譯在手機上可能需要數秒；全部在本機完成，不會上傳你的卡面。</div>
         <div class="action-actions">
@@ -153,6 +162,7 @@
     </div>
   </main>
 
+  <!-- 發布 / QR 面板：由 js/studio/share.js 控制顯示。 -->
   <div id="shareOverlay" class="overlay" hidden>
     <div class="share-card" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
       <div class="share-head">
@@ -176,6 +186,7 @@
     </div>
   </div>
 
+  <!-- 編譯進度遮罩：由 studio/app.js 與 ui/compile-overlay.js 控制。 -->
   <div id="compileOverlay" class="overlay" hidden>
     <div class="compile-card">
       <div class="compile-orbit"></div>
@@ -187,6 +198,14 @@
     </div>
   </div>
 
+  <!--
+    載入順序不能任意調換：
+    1. A-Frame 先建立 AFRAME。
+    2. MindAR core ESM 與 A-Frame bundle 提供 MINDAR.IMAGE.Compiler。
+    3. mindar-bundle-ref 在 core ESM 之後保存 bundle 的 WebGL compiler。
+    4. fflate / qrcode 是發布面板用的第三方工具。
+    5. 最後才載入 type=module 的製作端入口。
+  -->
   <!-- MindAR 1.2.2：core 是 ESM；A-Frame 綁定包也內建 core。 -->
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script type="module" src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image.prod.js"></script>

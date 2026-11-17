@@ -1,4 +1,9 @@
-/* Studio-only controls: profile fields and card package actions. */
+/*
+ * 製作端專屬樣式：名片資料表單、發布按鈕與 QR 面板。
+ * 只由 studio.html 載入；viewer/landing 不應依賴這裡的 class。
+ */
+
+/* 名片資料：桌機兩欄，手機單欄；slug 獨占一列。 */
 .profile-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -6,6 +11,7 @@
 }
 .profile-grid .field:last-child { grid-column: 1 / -1; }
 
+/* action bar 右側的「進入 AR / 下載卡片包」按鈕群。 */
 .action-actions {
   display: flex;
   flex: none;
@@ -26,6 +32,7 @@
 }
 .secondary-btn:hover { background: var(--mint-soft); }
 
+/* 發布面板：可捲動，避免小螢幕上 QR 與按鈕被截掉。 */
 .share-card {
   width: min(100%, 430px);
   max-height: calc(100vh - 44px);
@@ -40,12 +47,15 @@
 .share-head h2 { margin: 8px 0 0; font-size: 22px; letter-spacing: -0.02em; }
 .share-note { margin: 14px 0; color: var(--muted); font-size: 11.5px; line-height: 1.65; }
 .share-note code { color: var(--ink-soft); }
+
+/* QR 容器固定最小高度，避免 QR 產生前後面板跳動。 */
 .share-qr { display: grid; place-items: center; min-height: 180px; padding: 12px; border: 1px dashed var(--line-strong); border-radius: 18px; background: var(--surface-soft); color: var(--muted); font-size: 12px; text-align: center; }
 .share-qr svg { width: min(100%, 220px); height: auto; }
 .share-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
 .share-actions .primary-btn { min-width: 0; flex: 1 1 100%; }
 .share-actions .secondary-btn { flex: 1 1 auto; }
 
+/* 手機：所有控制項單欄，按鈕全寬，QR 縮小。 */
 @media (max-width: 640px) {
   .profile-grid { grid-template-columns: 1fr; }
   .action-actions { flex-direction: column; width: 100%; }

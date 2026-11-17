@@ -1,3 +1,13 @@
+/**
+ * AR 平面內容的材質產生與快取。
+ *
+ * 文字頁用 canvas 即時畫成 2:1 的卡片；照片與影片則轉成 Three.js 材質。
+ * 每個 target 會把材質快取在自己的 `_textTexture` / `_imageTexture` /
+ * `_videoTexture` 欄位，換頁時重複使用；離開 AR 時由
+ * `disposePageCaches()` 統一釋放，避免 GPU 記憶體越用越多。
+ *
+ * 這個模組依賴 `window.AFRAME.THREE`，所以只能在 A-Frame 載入後執行。
+ */
 import {
   DEFAULT_TEXT,
   FONT_STACK,
@@ -11,10 +21,20 @@ import { loadImage } from "../utils/files.js";
 import { pad2 } from "../utils/format.js";
 import { wrapCanvasText } from "../utils/canvas.js";
 
+// 延後取得 THREE，避免 module 載入時 A-Frame 還不存在。
 function three() {
   return window.AFRAME.THREE;
 }
 
+/**
+ * 把文字頁畫成 1024×512 的卡片材質。
+ * 第一次呼叫會建立並快取；之後同一頁直接回傳同一張 texture。
+ *
+ * @param {object} page target 物件，需有 label/text。
+ * @param {number} index 頁碼索引（從 0 開始）。
+ * @param {number} total 總頁數。
+ * @returns {THREE.CanvasTexture}
+ */
 export function makeTextTexture(page, index, total) {
   if (page._textTexture) return page._textTexture;
   const canvas = document.createElement("canvas");
@@ -27,6 +47,7 @@ export function makeTextTexture(page, index, total) {
   const title = (page.label || "").trim() || "ID Card";
   const body = (page.text || "").trim() || DEFAULT_TEXT;
 
+  // 底色與右上角柔光：讓白底卡片在鏡頭畫面裡仍有一點層次。
   ctx.fillStyle = "#f6f6f6";
   ctx.fillRect(0, 0, TEX_W, TEX_H);
 
@@ -46,6 +67,7 @@ export function makeTextTexture(page, index, total) {
   ctx.lineWidth = 2;
   ctx.strokeRect(22, 22, TEX_W - 44, TEX_H - 44);
 
+  // 卡片固定標頭。
   ctx.fillStyle = "#1f2f2f";
   ctx.font = "800 24px " + FONT_STACK;
   ctx.textAlign = "left";
@@ -58,6 +80,7 @@ export function makeTextTexture(page, index, total) {
   ctx.fillText("SCAN · VIEW", TEX_W - 64, 86);
   ctx.textAlign = "left";
 
+  // 標題先降字級，真的放不下才截斷並加省略號。
   let titleSize = 58;
   ctx.font = "800 " + titleSize + "px " + FONT_STACK;
   while (titleSize > 34 && ctx.measureText(title).width > TEX_W - 128) {
@@ -75,6 +98,8 @@ export function makeTextTexture(page, index, total) {
   ctx.fillStyle = palette.accent;
   ctx.fillRect(64, 188, 116, 6);
 
+  // 內文：先從 32px 往下試，找到能在 200px 高度內放完的字級；
+  // 若最小字級仍放不下，就截斷最後一行。
   let bodySize = 32;
   let lineHeight = 46;
   let lines = [];
@@ -96,6 +121,7 @@ export function makeTextTexture(page, index, total) {
   ctx.font = "400 " + bodySize + "px " + FONT_STACK;
   lines.forEach((line, i) => ctx.fillText(line, 64, 240 + i * lineHeight));
 
+  // 底部頁碼與提示。
   ctx.strokeStyle = "rgba(31,47,47,.14)";
   ctx.lineWidth = 1;
   ctx.beginPath();
@@ -114,6 +140,8 @@ export function makeTextTexture(page, index, total) {
 
   const THREE = three();
   const texture = new THREE.CanvasTexture(canvas);
+  // 新版 Three.js 用 colorSpace，舊版用 encoding；兩個分支都保留，
+  // 才不會因 CDN 版本不同而讓顏色偏暗。
   if (THREE.SRGBColorSpace !== undefined) texture.colorSpace = THREE.SRGBColorSpace;
   else if (THREE.sRGBEncoding !== undefined) texture.encoding = THREE.sRGBEncoding;
   texture.minFilter = THREE.LinearMipmapLinearFilter;
@@ -125,6 +153,12 @@ export function makeTextTexture(page, index, total) {
   return texture;
 }
 
+/**
+ * 載入照片並建立材質；同一個 target 只會載入一次。
+ *
+ * @param {object} page
+ * @returns {Promise<{texture: THREE.Texture, aspect: number}>}
+ */
 export function ensureImage(page) {
   if (page._imageTexture) return Promise.resolve({ texture: page._imageTexture, aspect: page._aspect });
   if (page._imagePromise) return page._imagePromise;
@@ -141,6 +175,15 @@ export function ensureImage(page) {
   return page._imagePromise;
 }
 
+/**
+ * 建立隱藏影片與 VideoTexture；載入失敗時會清掉 video 並 reject。
+ *
+ * 影片元素必須放進 DOM 才能在某些行動瀏覽器解碼，所以設成
+ * 1×1、透明、不可點，並固定在畫面外。
+ *
+ * @param {object} page
+ * @returns {Promise<{texture: THREE.VideoTexture, aspect: number}>}
+ */
 export function ensureVideo(page) {
   if (page._videoTexture) return Promise.resolve({ texture: page._videoTexture, aspect: page._aspect });
   if (page._videoPromise) return page._videoPromise;
@@ -153,6 +196,8 @@ export function ensureVideo(page) {
     video.setAttribute("playsinline", "");
     video.setAttribute("webkit-playsinline", "");
     video.preload = "auto";
+    // 影片必須在 DOM 裡才能在一些行動瀏覽器解碼；把它藏在畫面外，
+    // 不影響版面，也不會被使用者看到。
     video.style.cssText = "position:fixed;left:-9999px;top:0;width:2px;height:2px;opacity:0;pointer-events:none;";
     document.body.appendChild(video);
     const fail = (err) => {
@@ -167,6 +212,7 @@ export function ensureVideo(page) {
       else if (THREE.sRGBEncoding !== undefined) texture.encoding = THREE.sRGBEncoding;
       texture.minFilter = THREE.LinearFilter;
       texture.magFilter = THREE.LinearFilter;
+      // 影片每一幀都在變，不需要 mipmap。
       texture.generateMipmaps = false;
       texture.needsUpdate = true;
       page._video = video;
@@ -179,6 +225,14 @@ export function ensureVideo(page) {
   return page._videoPromise;
 }
 
+/**
+ * 依 contentType 取得平面內容的材質；面板型內容不走這條路。
+ *
+ * @param {object} page
+ * @param {number} index
+ * @param {number} total
+ * @returns {Promise<{texture: THREE.Texture, aspect: number}>}
+ */
 export function getPageMedia(page, index, total) {
   if (page.contentType === "text") {
     return Promise.resolve({ texture: makeTextTexture(page, index, total), aspect: 2 });
@@ -188,6 +242,10 @@ export function getPageMedia(page, index, total) {
   return Promise.reject(new Error("此內容類型不使用 3D 平面"));
 }
 
+/**
+ * 暫停目前播放中的影片，並隱藏聲音按鈕。
+ * 換頁、關面板、離開 AR 時都會呼叫。
+ */
 export function stopActiveVideo() {
   if (arState.activeVideo) {
     try { arState.activeVideo.pause(); } catch (err) { /* noop */ }
@@ -196,6 +254,15 @@ export function stopActiveVideo() {
   arDom.videoSoundBtn.hidden = true;
 }
 
+/**
+ * 釋放所有 target 的快取材質與隱藏影片。
+ *
+ * `texture.dispose()` 只釋放 GPU 資源，不會自動清掉 JS 參照；所以這裡
+ * 也把 `_textTexture` 等欄位設回 null，否則下一次 startAr 會拿到已
+ * 銷毀的材質。
+ *
+ * @param {Array<object>} [targets] 預設為目前 arState.targets。
+ */
 export function disposePageCaches(targets = arState.targets) {
   targets.forEach((target) => {
     [target._textTexture, target._imageTexture, target._videoTexture].forEach((texture) => {

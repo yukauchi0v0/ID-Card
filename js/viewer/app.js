@@ -1,3 +1,9 @@
+/**
+ * 觀看端主流程：讀 manifest → 顯示普通名片 → 使用者按「用 AR 看」才開相機。
+ *
+ * 這個順序是刻意的：收到名片的人先看到姓名/電話/Email，即使相機權限被
+ * 拒絕或裝置不支援 AR，資訊仍然可用。AR 只是加分，不應阻擋名片內容。
+ */
 import { viewerDom } from "./dom.js";
 import { loadManifest } from "./manifest.js";
 import { arDom } from "../ar/dom.js";
@@ -5,6 +11,7 @@ import { initArUi, startAr, stopAr } from "../ar/runtime.js";
 
 let manifest = null;
 
+/** 回到名片頁，並依 manifest 狀態決定 AR 按鈕是否可用。 */
 function showProfile() {
   viewerDom.profile.hidden = false;
   viewerDom.error.hidden = true;
@@ -13,6 +20,7 @@ function showProfile() {
   document.body.classList.remove("ar-active");
 }
 
+/** 顯示錯誤卡片（缺 card 參數、404、格式錯誤等），並隱藏名片與 loading。 */
 function showError(message) {
   viewerDom.profile.hidden = true;
   viewerDom.loading.hidden = true;
@@ -21,6 +29,14 @@ function showError(message) {
   document.body.classList.remove("ar-active");
 }
 
+/**
+ * 設定一個聯絡方式列；value/href 任一為空就整列隱藏。
+ * 這樣空的名片欄位不會留下「電話：」這種空殼。
+ *
+ * @param {HTMLElement} el
+ * @param {string} value 顯示文字
+ * @param {string} href tel:/mailto:/https:
+ */
 function contactLink(el, value, href) {
   const item = el.closest("li");
   if (!value || !href) {
@@ -32,6 +48,13 @@ function contactLink(el, value, href) {
   el.href = href;
 }
 
+/**
+ * 把 manifest.profile 寫進名片頁。
+ * 電話會移除空白後放進 tel:；網站只接受 http(s)，避免 javascript: 等
+ * 不安全的 scheme 被放進 href。
+ *
+ * @param {object} profile
+ */
 function renderProfile(profile) {
   viewerDom.name.textContent = profile.name || "ID Card";
   viewerDom.title.textContent = profile.title;
@@ -55,6 +78,12 @@ function renderProfile(profile) {
   document.title = profile.name ? profile.name + " · ID Card" : "ID Card · Viewer";
 }
 
+/**
+ * 初始化觀看端。
+ *
+ * 沒有 `?card` 時不啟動 AR，直接顯示錯誤；有卡片時才載入 manifest。
+ * AR 按鈕只在 manifest 成功載入且至少有一個 target 時可用。
+ */
 async function init() {
   initArUi();
 
@@ -75,6 +104,8 @@ async function init() {
 
   viewerDom.arBtn.addEventListener("click", () => {
     if (!manifest) return;
+    // 先隱藏名片、顯示 loading，再啟動 AR；若 startAr 同步 throw，
+    // catch 會負責收掉 loading 並顯示錯誤，不會留下空白頁。
     viewerDom.arBtn.disabled = true;
     viewerDom.profile.hidden = true;
     viewerDom.loading.hidden = false;
@@ -112,5 +143,6 @@ async function init() {
 }
 
 init().catch((err) => {
+  // 任何未預期的初始化錯誤都要有可見的錯誤畫面，不能只留在 console。
   showError("無法載入觀看頁：" + (err.message || "請重新整理再試。"));
 });

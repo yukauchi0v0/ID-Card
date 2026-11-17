@@ -1,3 +1,10 @@
+/**
+ * 製作端本機暫存（IndexedDB）。
+ *
+ * 只存在這台手機/瀏覽器，不會同步到雲端；用途是讓使用者重新整理或
+ * 隔天再打開時，不必重傳卡蓋圖、也不必重新編譯。發布與分享仍然要靠
+ * `card-package.js` 匯出的靜態檔，這兩件事不要混在一起。
+ */
 import { DB_KEY, DB_NAME, DB_STORE, MAX_TARGETS } from "../config.js";
 import { studioState as state } from "./state.js";
 import { studioDom as dom } from "./dom.js";
@@ -10,6 +17,14 @@ import { updateEnterButton } from "./ui/enter-button.js";
 import { renderProfile } from "./profile.js";
 import { toast } from "../shared/toast.js";
 
+/**
+ * 卡蓋圖的「指紋」。
+ *
+ * 只用檔名 + 大小，不讀圖片內容；對這個用途足夠，而且同步、便宜。
+ * 只要指紋不同，快取的 `.mind` 就不能重用，必須重新編譯。
+ *
+ * @returns {string}
+ */
 export function targetSignature() {
   return state.targets.map((target) => {
     const file = target.file;
@@ -17,6 +32,12 @@ export function targetSignature() {
   }).join("|");
 }
 
+/**
+ * 開啟（必要時建立）儲存用的 IndexedDB。
+ * 每個函式各自開關連線，避免長時間持有 transaction 造成 blocked。
+ *
+ * @returns {Promise<IDBDatabase>}
+ */
 function openSessionDb() {
   return new Promise((resolve, reject) => {
     if (!window.indexedDB) { reject(new Error("瀏覽器不支援 IndexedDB")); return; }
@@ -30,6 +51,14 @@ function openSessionDb() {
   });
 }
 
+/**
+ * 把目前編輯狀態寫入 IndexedDB。
+ *
+ * 沒有 targets 或還沒有 `.mind` 時直接跳過：這不是錯誤，只是還沒東西
+ * 可存。Blob/File 可以直接放進 IndexedDB，不需要先轉 base64。
+ *
+ * @returns {Promise<void>}
+ */
 export async function saveSession() {
   if (!state.targets.length || !state.mindBlob) return;
   const db = await openSessionDb();
@@ -69,7 +98,18 @@ export async function saveSession() {
   }
 }
 
+/**
+ * 從 IndexedDB 還原上一次的編輯狀態。
+ *
+ * 還原時會重新建立 File 與 object URL，並把卡蓋圖重新縮到編譯尺寸；
+ * 不能直接沿用上次的 canvas，因為瀏覽器關掉後記憶體中的 canvas 已經
+ * 沒了。任何單一 target 失敗都只跳過該張，不讓整個還原失敗。
+ *
+ * @returns {Promise<boolean>} 有還原至少一個 target 時回傳 true。
+ */
 export async function restoreSession() {
+  // restoring 會讓「進入 AR」與上傳按鈕暫時 disabled，避免使用者在
+  // 非同步還原途中又上傳新圖，造成 state 競爭。
   state.restoring = true;
   updateEnterButton();
   let db = null;
@@ -126,11 +166,13 @@ export async function restoreSession() {
 
     state.targets = restored;
     state.uid = Math.max.apply(null, restored.map((target) => target.id).concat([state.uid]));
+    // profile 可能是舊版沒有 slug 的資料；用 name 補一個穩定 slug。
     state.profile = Object.assign({}, state.profile, record.profile || {});
     state.profile.slug = slugify(state.profile.slug || state.profile.name);
     state.settings = Object.assign({}, state.settings, record.settings || {});
     state.mindBlob = record.mindBlob || null;
     state.mindSignature = record.signature || "";
+    // 先讓表單與設定 UI 反映還原值，再重畫卡片清單。
     renderProfile();
     updateSettingsUi();
     renderCards();
@@ -148,6 +190,11 @@ export async function restoreSession() {
   }
 }
 
+/**
+ * 綁定「清除本機紀錄」按鈕。
+ * 這是破壞性操作，所以使用 native confirm；成功後 reload 讓所有 UI
+ * 回到乾淨狀態，比逐一重設每個模組的狀態可靠。
+ */
 export function initSessionControls() {
   dom.clearSavedBtn.addEventListener("click", () => {
     if (!window.confirm("清除這台手機上儲存的卡蓋圖案與內容？")) return;

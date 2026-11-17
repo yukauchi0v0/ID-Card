@@ -1,5 +1,10 @@
-/* Reset and document defaults */
+/*
+ * 全站 reset 與文件基底。
+ * 三頁（landing/studio/viewer）都先載入這支，之後才由各頁覆寫。
+ */
 * { box-sizing: border-box; }
+
+/* [hidden] 必須赢過任何 display 設定，否則 JS 用 hidden 切換會失效。 */
 [hidden] { display: none !important; }
 
 html, body {
@@ -12,6 +17,7 @@ html, body {
   text-rendering: optimizeLegibility;
 }
 
+/* 三層 radial gradient 是 landing/studio 的共用背景，viewer 會再蓋一層玻璃卡。 */
 body {
   min-height: 100dvh;
   overflow-x: hidden;
@@ -22,6 +28,7 @@ body {
     var(--bg);
 }
 
+/* AR 啟動時鎖住背景捲動，避免手指滑動同時翻頁又捲動頁面。 */
 body.ar-active { overflow: hidden; overscroll-behavior: none; }
 button, input, textarea, select { font: inherit; }
 button { -webkit-tap-highlight-color: transparent; }

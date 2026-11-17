@@ -1,5 +1,7 @@
-/* Compile overlay, error panel and toast */
-/* ============================== OVERLAYS ============================== */
+/*
+ * 全螢幕遮罩：編譯進度、AR 錯誤與 toast。
+ * z-index 順序：一般 UI < 面板 (50) < 錯誤 (55) < overlay (100) < toast (200)。
+ */
 .overlay {
   position: fixed;
   inset: 0;
@@ -12,6 +14,7 @@
   -webkit-backdrop-filter: blur(14px);
 }
 
+/* 編譯卡：旋轉圓環 + 進度條；純 CSS，不依賴外部動畫檔。 */
 .compile-card {
   width: min(100%, 390px);
   padding: 30px 28px 24px;
@@ -61,6 +64,7 @@
 #progressBar { width: 0%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--mint-strong), var(--mint)); box-shadow: 0 0 18px rgba(103, 191, 174, 0.38); transition: width 0.2s ease; }
 .compile-meta { display: flex; justify-content: space-between; margin-top: 9px; color: #9aa7a7; font-size: 9.5px; letter-spacing: 0.05em; font-variant-numeric: tabular-nums; }
 
+/* AR 錯誤：蓋在 AR 畫面上，提供「返回」讓使用者回到名片/設定。 */
 .error-panel {
   pointer-events: auto;
   position: absolute;
@@ -89,6 +93,7 @@
 .error-card p { margin: 11px 0 0; color: var(--muted); font-size: 12px; line-height: 1.7; text-align: left; }
 .error-card button { width: 100%; min-height: 46px; margin-top: 20px; border: 1px solid var(--line-strong); border-radius: 12px; color: var(--ink); background: var(--mint-soft); font-size: 13px; font-weight: 750; cursor: pointer; }
 
+/* Toast：不攔截點擊，時間到由 js/shared/toast.js 移除 .show。 */
 .toast {
   position: fixed;
   left: 50%;

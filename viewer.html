@@ -9,7 +9,12 @@
   <link rel="stylesheet" href="styles/viewer.css" />
 </head>
 <body>
+  <!--
+    觀看端：先顯示普通名片，使用者按「用 AR 看」才啟動相機。
+    ?card=cards/<slug>/card.json 是唯一入口；沒有帶參數時會顯示錯誤卡。
+  -->
   <main id="viewer">
+    <!-- 普通名片頁；空欄位由 js/viewer/app.js 隱藏。 -->
     <section id="viewerProfile" class="viewer-card">
       <p class="viewer-eyebrow">ID CARD</p>
       <h1 id="viewerName">ID Card</h1>
@@ -24,6 +29,7 @@
       <p class="viewer-hint">需要相機權限；建議用手機開啟。看不到 AR 時，名片資訊仍可使用。</p>
     </section>
 
+    <!-- 讀不到 manifest / 缺 card 參數時的錯誤卡。 -->
     <section id="viewerError" class="viewer-card viewer-error" hidden aria-live="polite">
       <p class="viewer-eyebrow">ID CARD</p>
       <h1>讀不到這張名片</h1>
@@ -31,6 +37,7 @@
       <a class="primary-btn" href="index.html">回首頁</a>
     </section>
 
+    <!-- 相機啟動中的全螢幕 loading；AR ready 或錯誤時由 app.js 隱藏。 -->
     <div id="viewerLoading" class="viewer-loading" hidden role="status" aria-live="polite">
       <div class="compile-orbit" aria-hidden="true"></div>
       <p>正在啟動相機…</p>
@@ -39,6 +46,7 @@
 
   <noscript>這個觀看頁需要 JavaScript 才能顯示名片與 AR 內容。</noscript>
 
+  <!-- 與 studio.html 相同：A-Frame → MindAR core/bundle → bundle ref → viewer 入口。 -->
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script type="module" src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image.prod.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>

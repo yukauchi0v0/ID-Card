@@ -1,3 +1,12 @@
+/**
+ * AR 生命週期協調層。
+ *
+ * 把「建立/銷毀 AR」與「宿主頁面自己的 UI」切開：
+ * - studio 用它在編譯後進入 AR，返回時回到設定頁。
+ * - viewer 用它在名片頁按下「用 AR 看」後進入 AR，返回時回到名片。
+ *
+ * 這個模組只處理 AR 內部狀態與資源；下載、發布、名片資料都不在這裡。
+ */
 import { DEFAULT_SETTINGS } from "../config.js";
 import { arDom } from "./dom.js";
 import { arState } from "./state.js";
@@ -9,6 +18,10 @@ import { disposePageCaches, stopActiveVideo } from "../media/textures.js";
 
 let uiReady = false;
 
+/**
+ * 初始化 AR UI 的事件監聽；整個頁面只需一次。
+ * 必須在 `mountArShell()` 之後呼叫，因為 HUD/panel 的 DOM 已經解析完成。
+ */
 export function initArUi() {
   if (uiReady) return;
   uiReady = true;
@@ -17,6 +30,8 @@ export function initArUi() {
   initGestures();
 }
 
+// 螢幕喚醒鎖定：避免使用者掃卡時手機自動鎖屏。
+// 瀏覽器不支援或使用者拒絕時安靜失敗，不影響 AR。
 async function requestWakeLock() {
   if (!("wakeLock" in navigator) || arState.wakeLock) return;
   try {
@@ -32,6 +47,21 @@ function releaseWakeLock() {
   arState.wakeLock = null;
 }
 
+/**
+ * 啟動一次 AR session。
+ *
+ * 先把上一輪的 scene、影片、材質與 Blob URL 清乾淨，再重設狀態；這樣
+ * studio 重新編譯或 viewer 來回切換時，不會殘留舊頁面或舊相機。
+ * `onReady` / `onError` 由宿主頁面提供，AR 核心只回報結果，不直接操作
+ * 製作端或觀看端的載入遮罩。
+ *
+ * @param {object} options
+ * @param {Array<object>} options.targets 卡蓋與內容資料。
+ * @param {object} options.settings 位置、大小、追蹤等設定。
+ * @param {string} options.mindUrl 編譯後的 `.mind` Blob URL。
+ * @param {() => void} [options.onReady] 相機與 scene 就緒時呼叫。
+ * @param {(error: any) => void} [options.onError] 啟動失敗時呼叫。
+ */
 export function startAr({ targets, settings, mindUrl, onReady, onError }) {
   teardownScene();
   closePanel();
@@ -65,6 +95,12 @@ export function startAr({ targets, settings, mindUrl, onReady, onError }) {
   requestWakeLock().catch(() => {});
 }
 
+/**
+ * 停止 AR 並把共用狀態回到初始值。
+ *
+ * 清理順序很重要：先停面板/影片與 scene，再釋放材質與 `.mind` Blob URL；
+ * 若先 revoke URL，MindAR 可能還在讀取，會留下相機或網路錯誤。
+ */
 export function stopAr() {
   window.clearTimeout(arState.readyTimer);
   arState.readyTimer = null;

@@ -1,3 +1,10 @@
+/**
+ * 卡蓋清單與內容編輯器。
+ *
+ * 這裡的 HTML 是用 template string 產生的；所有使用者輸入都必須先
+ * `escapeHtml`，否則檔名/標題可以注入 markup。事件則用委派綁在
+ * `#cards` 上，這樣每次 renderCards() 重建卡片時不必重新綁定。
+ */
 import { MAX_TARGETS, TYPE_LABELS } from "../../config.js";
 import { studioState as state } from "../state.js";
 import { studioDom as dom } from "../dom.js";
@@ -13,6 +20,13 @@ import {
 import { toast } from "../../shared/toast.js";
 import { updateEnterButton } from "./enter-button.js";
 
+/**
+ * 依內容型態產生編輯器 HTML。
+ * text 用 textarea；videoLink/webpage 用 URL；image/video/pdf 用檔案選擇。
+ *
+ * @param {object} target
+ * @returns {string}
+ */
 function renderContentEditor(target) {
   if (target.contentType === "text") {
     return `
@@ -64,6 +78,10 @@ function renderContentEditor(target) {
   `;
 }
 
+/**
+ * 重畫整個卡蓋清單，並同步 badge、dropzone 與進入按鈕狀態。
+ * 這個函式是 idempotent 的：任何 target 變更後都可以直接呼叫。
+ */
 export function renderCards() {
   dom.cards.innerHTML = state.targets.map((target, index) => {
     const typeOptions = Object.entries(TYPE_LABELS).map(([value, label]) =>
@@ -102,10 +120,20 @@ export function renderCards() {
   updateEnterButton();
 }
 
+/** 用 data-id 找 target；id 可能是字串或數字，所以兩邊都轉字串比對。 */
 function findTargetById(id) {
   return state.targets.find((target) => String(target.id) === String(id));
 }
 
+/**
+ * 接收使用者選取/拖放的檔案，轉成卡蓋 target。
+ *
+ * 只接受圖片；最多 8 張。每張圖會先經過 `prepareImageForCompiler`
+ * 縮到編譯尺寸，避免把 4000px 的手機照片直接丟進 MindAR。
+ *
+ * @param {FileList|File[]} fileList
+ * @returns {Promise<void>}
+ */
 async function addFiles(fileList) {
   if (state.adding) return;
   const files = Array.from(fileList || []);
@@ -165,6 +193,7 @@ async function addFiles(fileList) {
   if (failed) toast(failed + " 張圖片讀取失敗，請換一張試試。");
 }
 
+/** 清掉某個 target 的內容檔與 object URL；切換型態或移除卡片時使用。 */
 function clearTargetContentFile(target) {
   if (target.contentObjectUrl) URL.revokeObjectURL(target.contentObjectUrl);
   target.contentObjectUrl = null;
@@ -174,6 +203,14 @@ function clearTargetContentFile(target) {
   target.contentMime = "";
 }
 
+/**
+ * 驗證並設定單一 target 的內容檔。
+ * 先清舊檔再設新檔，確保切換檔案時不會留下舊的 object URL。
+ *
+ * @param {object} target
+ * @param {string} kind image/video/pdf
+ * @param {File|undefined} file
+ */
 function chooseContentFile(target, kind, file) {
   if (!file) return;
   if (!isAllowedContentFile(kind, file)) { toast("這個檔案類型不符合。"); return; }
@@ -188,6 +225,10 @@ function chooseContentFile(target, kind, file) {
   renderCards();
 }
 
+/**
+ * 綁定上傳、內容編輯、移除與拖放事件；由 initApp() 呼叫一次。
+ * 因為卡片是動態重建的，這裡全部使用事件委派。
+ */
 export function initTargets() {
   dom.fileInput.addEventListener("change", () => addFiles(dom.fileInput.files));
 

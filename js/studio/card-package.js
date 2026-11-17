@@ -1,9 +1,28 @@
+/**
+ * 匯出可上傳的靜態卡片包。
+ *
+ * 產出的 zip 結構：
+ *   cards/<slug>/card.json
+ *   cards/<slug>/card.mind
+ *   cards/<slug>/media/page-N.<ext>
+ *
+ * 使用 `fflate` 在瀏覽器端打包，不經過伺服器；因此卡面與內容檔案都不會
+ * 被上傳到第三方。`level: 0` 是刻意選的：媒體檔多半已壓縮，再壓縮只會
+ * 增加 CPU 時間與記憶體用量。
+ */
 import { studioState } from "./state.js";
 import { buildCardManifest } from "./manifest.js";
 import { targetSignature } from "./session.js";
 import { slugify } from "../utils/slug.js";
 import { toast } from "../shared/toast.js";
 
+/**
+ * 決定 media 檔案的副檔名。
+ * 先用原檔名；若檔名沒有可用副檔名（例如 `photo`），才依 MIME 推斷。
+ *
+ * @param {object} target
+ * @returns {string}
+ */
 function extensionFor(target) {
   const name = target.contentName || "";
   const dot = name.lastIndexOf(".");
@@ -23,6 +42,13 @@ function extensionFor(target) {
   return byMime[target.contentMime] || "bin";
 }
 
+/**
+ * 用暫存的 `<a download>` 觸發瀏覽器下載。
+ * 先 append 再 click，某些瀏覽器（尤其 Safari）才不會忽略 click。
+ *
+ * @param {Blob} blob
+ * @param {string} filename
+ */
 function download(blob, filename) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -34,6 +60,15 @@ function download(blob, filename) {
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+/**
+ * 匯出目前編輯中的卡片包。
+ *
+ * 發布前會檢查 `.mind` 是否存在、且 signature 與目前卡蓋圖一致；避免
+ * 使用者在改了卡蓋圖之後，還把舊的 `.mind` 一起發布。
+ *
+ * @returns {Promise<{slug: string, fileName: string}|null>} 成功時回傳檔名，
+ *   缺少工具/尚未編譯/缺少媒體檔時回傳 null。
+ */
 export async function exportCardPackage() {
   const fflate = window.fflate;
   if (!fflate) {

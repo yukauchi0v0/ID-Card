@@ -1,5 +1,9 @@
-/* Setup screen: hero, target upload and content editor */
-/* ============================== SETUP ============================== */
+/*
+ * 製作端設定頁：hero、panel、上傳 dropzone、卡蓋卡片與內容編輯器。
+ * 這裡的 class 也被 viewer.css import，主要是重用 .primary-btn 與 .field。
+ */
+
+/* ============================== HERO ============================== */
 #setup {
   min-height: 100dvh;
   padding: max(18px, env(safe-area-inset-top)) 18px max(24px, env(safe-area-inset-bottom));
@@ -67,6 +71,7 @@
   line-height: 1.8;
 }
 
+/* 區塊卡：三個 panel 共用，玻璃感背景 + 大圓角。 */
 .panel {
   margin: 14px 0;
   padding: clamp(18px, 3.6vw, 30px);
@@ -113,6 +118,7 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* 上傳區：整個 label 可點，內含隱藏的 file input。 */
 .dropzone {
   display: flex;
   min-height: 132px;
@@ -159,6 +165,7 @@
 
 .cards { display: grid; gap: 13px; margin-top: 16px; }
 
+/* 卡蓋卡片：左縮圖、中欄位、右移除；手機在 responsive.css 縮小。 */
 .target-card {
   padding: 14px;
   border: 1px solid var(--line);
@@ -209,6 +216,7 @@
 
 .target-fields { display: grid; gap: 9px; min-width: 0; }
 
+/* 表單欄位：label 在上、input/textarea/select 在下。 */
 .field { display: grid; gap: 5px; min-width: 0; }
 
 .field > span {
@@ -320,8 +328,8 @@
   letter-spacing: 0.06em;
 }
 
-/* Setup screen: sticky action bar and footer */
-/* ============================== ACTION ============================== */
+/* ============================== ACTION BAR ============================== */
+/* 固定在底部；手機上 responsive.css 會改成 static 單欄。 */
 .action-bar {
   position: sticky;
   bottom: max(10px, env(safe-area-inset-bottom));

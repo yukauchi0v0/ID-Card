@@ -1,7 +1,12 @@
-/* AR HUD, scan guide, pager and 3D content frame */
-/* ============================== AR ============================== */
+/*
+ * AR 圖層樣式：A-Frame canvas、HUD、掃描框、頁面圓點與右下角按鈕。
+ * 這些元素由 js/ar/shell.js 注入，因此 viewer 與 studio 共用同一套外觀。
+ */
+
+/* ============================== AR 畫布 ============================== */
 #arRoot { position: fixed; inset: 0; overflow: hidden; touch-action: none; }
 
+/* A-Frame 預設會把自己定位成區塊；這裡強制鋪滿整個視窗。 */
 #arRoot a-scene {
   position: absolute !important;
   inset: 0 !important;
@@ -12,6 +17,8 @@
 
 #arRoot canvas.a-canvas { width: 100% !important; height: 100% !important; }
 
+/* ============================== HUD ============================== */
+/* HUD 本身不吃 pointer 事件，只有按鈕/圓點會重新開啟，避免擋住相機手勢。 */
 #arHud {
   position: fixed;
   inset: 0;
@@ -26,6 +33,7 @@
     linear-gradient(to top, rgba(246, 246, 246, 0.56), rgba(246, 246, 246, 0) 26%);
 }
 
+/* 頂部：返回、標題、狀態 pill。 */
 .hud-top {
   display: flex;
   align-items: flex-start;
@@ -107,6 +115,7 @@
 .mode-pill.ok { color: #276353; border-color: rgba(103, 191, 174, 0.28); background: var(--mint-soft); }
 .mode-pill.ok::before { background: var(--mint-strong); }
 
+/* 掃描框：比例固定成標準名片 85.6:54，讓使用者知道要對準的範圍。 */
 .scan-guide {
   position: absolute;
   top: 46%;
@@ -165,6 +174,7 @@
   -webkit-backdrop-filter: blur(12px);
 }
 
+/* 底部：頁面圓點、頁碼/提示與左右滑動說明。 */
 .hud-bottom {
   display: flex;
   flex-direction: column;
@@ -212,6 +222,7 @@ body.panel-open .hud-bottom { opacity: 0; pointer-events: none; }
 
 .hud-meta .sep { width: 1px; height: 10px; background: var(--line-strong); }
 
+/* 影片聲音與「開啟內容面板」固定在右下角，避免與頁碼重疊。 */
 .video-sound-btn, .panel-open-btn {
   position: fixed;
   right: 16px;

@@ -1,12 +1,25 @@
-// The only copy of the AR HUD / scan guide / panel / toast markup. Hosting
-// pages call mountArShell() before importing their app module, because
-// js/ar/dom.js resolves these ids at module-evaluation time.
+/**
+ * AR 外殼（HUD、掃描框、錯誤卡、內容面板、toast）的唯一一份 markup。
+ *
+ * studio 與 viewer 都共用這份外殼，差別只在返回按鈕的文字。宿主頁面
+ * 必須先呼叫 `mountArShell()`，再動態 import 自己的 app；因為
+ * `js/ar/dom.js` 會在 module 求值時立刻解析這些 id。
+ */
 let mounted = false;
 
+/**
+ * 注入 AR 外殼。重複呼叫是安全的（只會注入一次）。
+ *
+ * @param {{ backLabel?: string }} [options]
+ * @param {string} [options.backLabel] 返回按鈕文字；studio 用「返回設定」，
+ *   viewer 用「返回名片」。
+ */
 export function mountArShell({ backLabel = "返回設定" } = {}) {
   if (mounted || document.getElementById("arRoot")) return;
   mounted = true;
 
+  // 外殼順序：AR 圖層 → HUD（頂部/掃描框/底部/錯誤卡）→ 浮動按鈕 →
+  // 內容面板 → toast。內容面板放在 HUD 之外，才能獨立蓋在最上層。
   const shell = `
     <div id="arRoot" hidden></div>
 
