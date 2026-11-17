@@ -1,12 +1,12 @@
 import { DB_KEY, DB_NAME, DB_STORE, MAX_TARGETS } from "../config.js";
-import { state } from "../state.js";
-import { dom } from "../dom.js";
+import { studioState as state } from "./state.js";
+import { studioDom as dom } from "./dom.js";
 import { pad2 } from "../utils/format.js";
 import { loadImage, prepareImageForCompiler } from "../utils/files.js";
-import { renderCards } from "../ui/targets.js";
-import { updateSettingsUi } from "../ui/settings.js";
-import { updateEnterButton } from "../ui/enter-button.js";
-import { toast } from "../ui/toast.js";
+import { renderCards } from "./ui/targets.js";
+import { updateSettingsUi } from "./ui/settings.js";
+import { updateEnterButton } from "./ui/enter-button.js";
+import { toast } from "../shared/toast.js";
 
 export function targetSignature() {
   return state.targets.map((target) => {

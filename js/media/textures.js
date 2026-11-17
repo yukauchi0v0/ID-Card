@@ -5,8 +5,8 @@ import {
   TEX_W,
   TEXT_PALETTES
 } from "../config.js";
-import { state } from "../state.js";
-import { dom } from "../dom.js";
+import { arState } from "../ar/state.js";
+import { arDom } from "../ar/dom.js";
 import { loadImage } from "../utils/files.js";
 import { pad2 } from "../utils/format.js";
 import { wrapCanvasText } from "../utils/canvas.js";
@@ -179,9 +179,9 @@ export function ensureVideo(page) {
   return page._videoPromise;
 }
 
-export function getPageMedia(page) {
+export function getPageMedia(page, index, total) {
   if (page.contentType === "text") {
-    return Promise.resolve({ texture: makeTextTexture(page, state.currentPage, state.targets.length), aspect: 2 });
+    return Promise.resolve({ texture: makeTextTexture(page, index, total), aspect: 2 });
   }
   if (page.contentType === "image") return ensureImage(page);
   if (page.contentType === "video") return ensureVideo(page);
@@ -189,15 +189,15 @@ export function getPageMedia(page) {
 }
 
 export function stopActiveVideo() {
-  if (state.activeVideo) {
-    try { state.activeVideo.pause(); } catch (err) { /* noop */ }
-    state.activeVideo = null;
+  if (arState.activeVideo) {
+    try { arState.activeVideo.pause(); } catch (err) { /* noop */ }
+    arState.activeVideo = null;
   }
-  dom.videoSoundBtn.hidden = true;
+  arDom.videoSoundBtn.hidden = true;
 }
 
-export function disposePageCaches() {
-  state.targets.forEach((target) => {
+export function disposePageCaches(targets = arState.targets) {
+  targets.forEach((target) => {
     [target._textTexture, target._imageTexture, target._videoTexture].forEach((texture) => {
       if (texture) { try { texture.dispose(); } catch (err) { /* noop */ } }
     });
@@ -213,5 +213,5 @@ export function disposePageCaches() {
     target._video = null;
     target._aspect = null;
   });
-  state.activeVideo = null;
+  arState.activeVideo = null;
 }

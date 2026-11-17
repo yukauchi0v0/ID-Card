@@ -1,0 +1,37 @@
+@import "tokens.css";
+@import "base.css";
+
+body { min-height: 100vh; }
+.landing { min-height: 100vh; display: grid; place-items: center; padding: 32px 20px; }
+.landing-inner { width: min(900px, 100%); }
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink-soft);
+  background: rgba(255, 255, 255, 0.6);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.18em;
+}
+.entry-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 32px; }
+.entry-card {
+  display: block;
+  padding: 24px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.82);
+  color: inherit;
+  text-decoration: none;
+  border: 1px solid rgba(31, 47, 47, 0.1);
+  transition: transform 180ms ease, border-color 180ms ease;
+}
+.entry-card:hover { transform: translateY(-2px); border-color: rgba(31, 47, 47, 0.2); }
+.entry-num { font-size: 11px; font-weight: 800; letter-spacing: 0.16em; color: var(--ink-soft); }
+.entry-card h2 { margin: 16px 0 8px; font-size: 22px; letter-spacing: -0.04em; }
+.entry-card p { margin: 0; color: var(--ink-soft); line-height: 1.65; }
+.landing-lede { max-width: 560px; margin: 18px 0 0; color: var(--ink-soft); font-size: 18px; line-height: 1.7; }
+.landing-note { margin: 28px 0 0; color: var(--ink-soft); font-size: 13px; }
+@media (max-width: 640px) { .entry-grid { grid-template-columns: 1fr; } }

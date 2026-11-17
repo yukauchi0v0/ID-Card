@@ -1,7 +1,7 @@
-import { MAX_TARGETS, TYPE_LABELS } from "../config.js";
-import { state } from "../state.js";
-import { dom } from "../dom.js";
-import { byteLabel, escapeHtml, pad2 } from "../utils/format.js";
+import { MAX_TARGETS, TYPE_LABELS } from "../../config.js";
+import { studioState as state } from "../state.js";
+import { studioDom as dom } from "../dom.js";
+import { byteLabel, escapeHtml, pad2 } from "../../utils/format.js";
 import {
   contentAccept,
   contentFileLimit,
@@ -9,10 +9,9 @@ import {
   isAllowedContentFile,
   loadImage,
   prepareImageForCompiler
-} from "../utils/files.js";
-import { toast } from "./toast.js";
+} from "../../utils/files.js";
+import { toast } from "../../shared/toast.js";
 import { updateEnterButton } from "./enter-button.js";
-import { updateDots } from "./hud.js";
 
 function renderContentEditor(target) {
   if (target.contentType === "text") {
@@ -101,7 +100,6 @@ export function renderCards() {
   dom.dropZone.classList.toggle("is-full", state.targets.length >= MAX_TARGETS);
   dom.fileInput.disabled = state.adding || state.restoring || state.targets.length >= MAX_TARGETS;
   updateEnterButton();
-  updateDots();
 }
 
 function findTargetById(id) {

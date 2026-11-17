@@ -1,6 +1,6 @@
-import { state } from "../state.js";
-import { dom, orientationButtons, positionButtons } from "../dom.js";
-import { clamp } from "../utils/format.js";
+import { studioState as state } from "../state.js";
+import { studioDom as dom, orientationButtons, positionButtons } from "../dom.js";
+import { clamp } from "../../utils/format.js";
 
 export function updateSettingsUi() {
   dom.gapValue.textContent = state.settings.gapCm.toFixed(2) + " cm";

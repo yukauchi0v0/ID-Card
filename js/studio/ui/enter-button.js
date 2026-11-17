@@ -1,6 +1,6 @@
-import { state } from "../state.js";
-import { dom } from "../dom.js";
-import { getCompilerClass } from "../media/compiler.js";
+import { studioState as state } from "../state.js";
+import { studioDom as dom } from "../dom.js";
+import { getCompilerClass } from "../../media/compiler.js";
 
 export function updateEnterButton() {
   const ready = Boolean(getCompilerClass()) && !state.adding && !state.compiling && !state.restoring;
