@@ -2,6 +2,7 @@ import { studioState } from "./state.js";
 import { studioDom } from "./dom.js";
 import { slugify } from "../utils/slug.js";
 import { exportCardPackage } from "./card-package.js";
+import { targetSignature } from "./session.js";
 import { toast } from "../shared/toast.js";
 
 export function viewerUrl() {
@@ -38,6 +39,10 @@ function closeShare() {
 export function openShare() {
   if (!studioState.targets.length) {
     toast("先上傳至少一張卡蓋圖案，再發布。");
+    return;
+  }
+  if (!studioState.mindBlob || studioState.mindSignature !== targetSignature()) {
+    toast("請先編譯名片，再發布。", 4200);
     return;
   }
   studioDom.shareUrl.value = viewerUrl();
