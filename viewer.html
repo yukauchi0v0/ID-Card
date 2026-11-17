@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#f6f6f6" />
+  <link rel="icon" href="data:," />
+  <title>ID Card · Viewer</title>
+  <link rel="stylesheet" href="styles/viewer.css" />
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+</head>
+<body>
+  <main id="viewer">
+    <section id="viewerProfile" class="viewer-card">
+      <p class="viewer-eyebrow">ID CARD</p>
+      <h1 id="viewerName">ID Card</h1>
+      <p id="viewerTitle" class="viewer-title"></p>
+      <p id="viewerCompany" class="viewer-company"></p>
+      <ul class="viewer-contact">
+        <li id="viewerPhoneItem"><a id="viewerPhone"></a></li>
+        <li id="viewerEmailItem"><a id="viewerEmail"></a></li>
+        <li id="viewerWebsiteItem"><a id="viewerWebsite" target="_blank" rel="noopener"></a></li>
+      </ul>
+      <button id="viewerArBtn" class="primary-btn" type="button" disabled>用 AR 看 <span class="arrow" aria-hidden="true">→</span></button>
+      <p class="viewer-hint">需要相機權限；建議用手機開啟。看不到 AR 時，名片資訊仍可使用。</p>
+    </section>
+
+    <section id="viewerError" class="viewer-card viewer-error" hidden aria-live="polite">
+      <p class="viewer-eyebrow">ID CARD</p>
+      <h1>讀不到這張名片</h1>
+      <p id="viewerErrorMsg"></p>
+      <a class="primary-btn" href="index.html">回首頁</a>
+    </section>
+
+    <div id="viewerLoading" class="viewer-loading" hidden role="status" aria-live="polite">
+      <div class="compile-orbit" aria-hidden="true"></div>
+      <p>正在啟動相機…</p>
+    </div>
+  </main>
+
+  <noscript>這個觀看頁需要 JavaScript 才能顯示名片與 AR 內容。</noscript>
+
+  <script type="module" src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+  <script src="js/mindar-bundle-ref.js"></script>
+  <script type="module" src="js/viewer/main.js"></script>
+</body>
+</html>
