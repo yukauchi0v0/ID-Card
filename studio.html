@@ -7,8 +7,6 @@
   <link rel="icon" href="data:," />
   <title>ID Card · Studio</title>
   <link rel="stylesheet" href="styles.css" />
-  <!-- A-Frame 1.5.0：放在 head 裡，確保動態建立 <a-scene> 前已完成註冊。 -->
-  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 </head>
 <body>
   <main id="setup">
@@ -190,6 +188,7 @@
   </div>
 
   <!-- MindAR 1.2.2：core 是 ESM；A-Frame 綁定包也內建 core。 -->
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script type="module" src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image.prod.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
   <!-- 保留 A-Frame bundle 的 MINDAR 命名空間，避免稍後執行的 core ESM 覆蓋。 -->

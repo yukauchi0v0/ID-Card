@@ -6,11 +6,21 @@ import { toast } from "../shared/toast.js";
 
 function extensionFor(target) {
   const name = target.contentName || "";
-  const ext = name.split(".").pop().toLowerCase();
-  if (/^[a-z0-9]{2,5}$/.test(ext)) return ext;
-  if (target.contentMime === "application/pdf") return "pdf";
-  if (target.contentMime === "video/mp4") return "mp4";
-  return "bin";
+  const dot = name.lastIndexOf(".");
+  if (dot > -1) {
+    const ext = name.slice(dot + 1).toLowerCase();
+    if (/^[a-z0-9]{2,5}$/.test(ext)) return ext;
+  }
+  const byMime = {
+    "image/png": "png",
+    "image/jpeg": "jpg",
+    "image/webp": "webp",
+    "image/gif": "gif",
+    "video/mp4": "mp4",
+    "video/webm": "webm",
+    "application/pdf": "pdf"
+  };
+  return byMime[target.contentMime] || "bin";
 }
 
 function download(blob, filename) {

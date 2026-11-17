@@ -181,9 +181,12 @@ export function mountArScene(imageTargetSrc) {
   window.setTimeout(applyResizeGuard, 0);
 
   arState.readyTimer = window.setTimeout(() => {
-    if (arState.sceneEl !== sceneEl || arState.sceneReady) return;
-    if (!arState.cameraError) toast("相機啟動較慢，請檢查權限或返回後重試。", 5200);
-    if (!arState.sceneReady && typeof arState.onError === "function") {
+    if (arState.sceneEl !== sceneEl || arState.sceneReady || arState.cameraError) return;
+    arState.cameraError = true;
+    toast("相機啟動較慢，請檢查權限或返回後重試。", 5200);
+    arDom.errorPanel.hidden = false;
+    updateHud();
+    if (typeof arState.onError === "function") {
       arState.onError(new Error("相機啟動逾時"));
     }
   }, 22000);
