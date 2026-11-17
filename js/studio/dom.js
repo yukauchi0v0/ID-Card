@@ -39,7 +39,14 @@ export const studioDom = {
   scaleRange: byId("scaleRange"),
   scaleValue: byId("scaleValue"),
   stabilitySelect: byId("stabilitySelect"),
-  clearSavedBtn: byId("clearSavedBtn")
+  clearSavedBtn: byId("clearSavedBtn"),
+  shareOverlay: byId("shareOverlay"),
+  shareUrl: byId("shareUrl"),
+  shareQr: byId("shareQr"),
+  shareCopy: byId("shareCopy"),
+  shareDownload: byId("shareDownload"),
+  shareQrDownload: byId("shareQrDownload"),
+  shareClose: byId("shareClose")
 };
 
 export const positionButtons = Array.from(document.querySelectorAll("[data-position]"));

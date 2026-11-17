@@ -155,6 +155,29 @@
     </div>
   </main>
 
+  <div id="shareOverlay" class="overlay" hidden>
+    <div class="share-card" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
+      <div class="share-head">
+        <div>
+          <p class="compile-kicker">SHARE CARD</p>
+          <h2 id="shareTitle">發布名片</h2>
+        </div>
+        <button id="shareClose" class="panel-close" type="button">關閉</button>
+      </div>
+      <p class="share-note">先下載卡片包，解壓後把 <code>cards/&lt;slug&gt;/</code> 放到網站根目錄，再把下面的網址給對方。</p>
+      <label class="field">
+        <span>觀看網址</span>
+        <input id="shareUrl" type="url" />
+      </label>
+      <div id="shareQr" class="share-qr" aria-label="名片 QR code"></div>
+      <div class="share-actions">
+        <button id="shareCopy" class="secondary-btn" type="button">複製連結</button>
+        <button id="shareDownload" class="primary-btn" type="button">下載卡片包</button>
+        <button id="shareQrDownload" class="secondary-btn" type="button">下載 QR</button>
+      </div>
+    </div>
+  </div>
+
   <div id="compileOverlay" class="overlay" hidden>
     <div class="compile-card">
       <div class="compile-orbit"></div>
@@ -172,6 +195,7 @@
   <!-- 保留 A-Frame bundle 的 MINDAR 命名空間，避免稍後執行的 core ESM 覆蓋。 -->
   <script src="js/mindar-bundle-ref.js"></script>
   <script src="vendor/fflate.js"></script>
+  <script src="vendor/qrcode.min.js"></script>
 
   <script type="module" src="js/studio/main.js"></script>
 </body>

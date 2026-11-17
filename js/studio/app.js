@@ -7,6 +7,7 @@ import { setCompileProgress, showCompileOverlay } from "./ui/compile-overlay.js"
 import { initTargets, renderCards } from "./ui/targets.js";
 import { initSettings, updateSettingsUi } from "./ui/settings.js";
 import { initProfile } from "./profile.js";
+import { initShare } from "./share.js";
 import { initArUi, startAr, stopAr } from "../ar/runtime.js";
 import { arDom } from "../ar/dom.js";
 import {
@@ -157,6 +158,7 @@ function exitAr() {
 
 export function initApp() {
   initArUi();
+  initShare();
   initSettings();
   initTargets();
   initSessionControls();
