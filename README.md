@@ -2,7 +2,7 @@
 
 用悠遊卡滑蓋卡套的不同圖案當識別 target，掃到哪一格，就在卡片上方顯示對應的平面內容。支援文字、照片、上傳影片、YouTube／Vimeo、互動網頁與 PDF。
 
-**Live Demo：** https://yukauchi0v0.github.io/webar-card/
+**Live Demo：** https://yukauchi0v0.github.io/ID-Card/
 
 ## 技術
 
@@ -110,7 +110,7 @@ python -m http.server 8000
 
 此倉庫已開啟 GitHub Pages（`main` / root）：
 
-- https://yukauchi0v0.github.io/webar-card/
+- https://yukauchi0v0.github.io/ID-Card/
 
 每次 push 到 `main` 會自動重新部署。`styles/`、`js/` 與 `index.html` 會一起部署，沒有 build 產物。
 
