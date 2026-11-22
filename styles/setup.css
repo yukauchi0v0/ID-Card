@@ -277,6 +277,8 @@
     --hero-split: clamp(165px, 20dvh, 200px);
     /* 4. 底部 SCROLL 黑條高度（含手機底部安全區） */
     --hero-bar-h: calc(48px + env(safe-area-inset-bottom));
+    /* 5. 底部藍區總高度（SCROLL 黑條 + 左下馬賽克高度 + 微幅留白），用來同時鎖住 fon.webp 底邊與 card2.webp */
+    --hero-bottom-gap: calc(var(--hero-bar-h) + clamp(86px, 11.5vw, 144px));
     background:
       linear-gradient(var(--ink), var(--ink)) 0 0 / 100% var(--hero-top-1) no-repeat,
       linear-gradient(var(--ink), var(--ink)) 100% 0 / 65% var(--hero-top-2) no-repeat,
@@ -289,7 +291,8 @@
     --hero-pad: clamp(20px, 5vw, 44px);
     --hero-indent: 10px;
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: var(--hero-split) auto auto auto 1fr;
+    /* 讓第 4 列（fon.webp）自動吃掉長螢幕多出來的高度，第 5 列鎖死在 --hero-bottom-gap */
+    grid-template-rows: var(--hero-split) auto auto minmax(220px, 1fr) var(--hero-bottom-gap);
     padding: 0 var(--hero-pad) 0;
   }
 
@@ -319,16 +322,23 @@
     margin: 24px var(--hero-indent) 0 var(--hero-indent);
   }
 
-  /* fon.webp 左右滿版貼邊；overflow: visible 讓右下角黑塊能往下延伸出圖片底緣 */
+  /* fon.webp 撐滿第 4 列，底邊精準對齊 --hero-bottom-gap；overflow: visible 讓右下黑塊自然垂出 */
   .hero-visual {
     grid-row: 4;
-    height: clamp(200px, 30dvh, 360px);
-    margin: 20px calc(var(--hero-pad) * -1) 24px;
+    align-self: stretch;
+    min-height: 0;
+    margin: 20px calc(var(--hero-pad) * -1) 0;
     border-block: 1.5px solid var(--ink);
     overflow: visible;
   }
 
-  /* 左上角藍色方形：壓在 fon.webp 上層，top: -2px 蓋掉左側黑框線讓藍區無縫相連 */
+  /* 圖片填滿外框而不撐破 1fr 列高，長螢幕時自然多露出畫面內容、不變形 */
+  .hero-visual img {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* 左上角藍色方形：加上高度上下限，長螢幕時不會跟著變得過厚 */
   .hero-visual::before {
     content: "";
     position: absolute;
@@ -336,7 +346,7 @@
     left: 0;
     z-index: 2;
     width: 44%;
-    height: 18%;
+    height: clamp(36px, 16%, 56px);
     background: var(--mint);
     pointer-events: none;
   }
@@ -360,11 +370,11 @@
     margin-left: var(--hero-indent);
   }
 
-  /* 新圖（card2.webp）的平板與手機定位：只動這段，完全不影響電腦版 */
+  /* card2.webp 直接以 --hero-bottom-gap 為基準定位，永遠緊跟 fon.webp 底緣，換長螢幕也不會脫節 */
   .hero-top-img {
-    right: 2%;
-    bottom: calc(13dvh + env(safe-area-inset-bottom));
-    width: 60%;
+    right: -5%;
+    bottom: calc(var(--hero-bottom-gap) - clamp(34px, 9vw, 60px));
+    width: clamp(230px, min(70vw, 48dvh), 520px);
     max-width: 380px;
   }
 }
