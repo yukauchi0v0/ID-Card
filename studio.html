@@ -30,9 +30,13 @@
             <img src="images/fon.webp" alt="">
           </figure>
         </div>
-        <img src="images/card.webp" alt="" class="hero-top-img" aria-hidden="true">
+        <picture>
+          <!-- 平板與手機（寬度 1024px 以下）會自動載入這張新圖 -->
+          <source media="(max-width: 1024px)" srcset="images/card2.webp">
+          <!-- 電腦（寬度 1025px 以上）維持原本這張 -->
+          <img src="images/card.webp" alt="" class="hero-top-img" aria-hidden="true">
+        </picture>
       </header>
-
       <!-- 01：名片資料。空白欄位在 viewer 會整列隱藏。 -->
       <div class="setup-body">
       <section class="panel">

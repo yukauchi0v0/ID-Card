@@ -59,7 +59,6 @@
 /* 12 欄彈性格線：讓主標與圖片自然交疊，不寫死座標 */
 .hero-stage {
   position: relative;
-  z-index: 1;
   width: 100%;
   min-height: 100dvh;
   padding: 0 clamp(20px, 3.5vw, 56px) 0;
@@ -79,10 +78,10 @@
     linear-gradient(var(--ink-soft), var(--ink-soft)) 100% 100% / clamp(110px, 15vw, 210px) clamp(36px, 6dvh, 58px) no-repeat,
     linear-gradient(var(--ink), var(--ink)) calc(100% - clamp(44px, 9vw, 130px)) 100% / clamp(100px, 14vw, 190px) clamp(110px, 24dvh, 220px) no-repeat;
 }
-/* SCROLL ↓ 壓在左下黑條正中央，左側與上方 WEBAR / 標題 / 說明完全對齊 */
 /* SCROLL ↓ 壓在左下黑條正中央，搭配兩段式輕點向下動畫（電腦與手機共用） */
 .hero-stage::after {
   content: "SCROLL ▼";
+  z-index: 3;
   grid-column: 1 / 6;
   grid-row: 4;
   align-self: end;
@@ -133,7 +132,7 @@
   grid-row: 1;
   align-self: end;
   justify-self: start;
-  margin-bottom: 36px;
+  z-index: 3;
   display: inline-flex;
   align-items: center;
   gap: 9px;
@@ -157,13 +156,11 @@
 
 /* ID Card. 主標：跨第 1~6 欄，稍微向上跨過藍線並壓在 WebP 圖片左上角 */
 .hero h1 {
-  grid-column: 1 / 7;
   grid-row: 2;
   align-self: start;
+  justify-self: start;
   position: relative;
   z-index: 3;
-  margin: -26px 0 0;
-  width: 100%;
 }
 
 .hero h1 .accent {
@@ -185,33 +182,26 @@
   height: auto;
 }
 
-/* 說明文字：排在主標黑陰影正下方，藍底配純白字 */
+/* 說明文字：排在主標黑陰影正下方，藍底配純白字（寬度與外距依電腦/手機斷點各自設定） */
 .lede {
   grid-column: 1 / 6;
   grid-row: 3;
   align-self: start;
   position: relative;
   z-index: 2;
-  max-width: 440px;
-  margin: 34px 0 0;
   color: var(--white);
   font-size: clamp(13.5px, 1.4vw, 15.5px);
   line-height: 1.8;
 }
 
-/* WebP 圖片預留區：第 6~10 欄（第 6 欄剛好被主標蓋住），往下方延伸 */
+/* WebP 圖片區（只留共用樣式，尺寸、邊框與位置分別交給下方電腦與平板/手機斷點） */
 .hero-visual {
-  grid-column: 6 / 13;
-  grid-row: 2 / 5;
   align-self: start;
   position: relative;
   z-index: 1;
-  margin: 18px 0 0;
-  height: clamp(360px, 68dvh, 680px);
   display: grid;
   place-items: center;
   overflow: hidden;
-  border: 1.5px solid var(--ink);
   background: var(--surface);
 }
 
@@ -229,36 +219,81 @@
   font-weight: 700;
   letter-spacing: 0.12em;
 }
-/* 封面最上層前景圖：z-index: 10 確保壓在標題、底圖與角落馬賽克之上 */
+/* 封面最上層前景圖（共用基礎屬性，定位與尺寸分別交給下方電腦與平板/手機斷點） */
 .hero-top-img {
   position: absolute;
   z-index: 10;
-  right: -5%;
-  bottom: -7dvh;
-  width: clamp(320px, 65vw, 950px);
   height: auto;
   display: block;
   pointer-events: none;
   user-select: none;
 }
 
-/* 手機版先維持單欄不跑版，之後可再單獨客製手機構圖 */
-@media (max-width: 768px) {
+/* 電腦版專屬（1025px 以上）：維持 card.webp 位置，並用 --hero-indent 統一控制說明小字與 SCROLL 的右移對齊 */
+@media (min-width: 1025px) {
+  .hero-stage {
+    --hero-indent: 16px;
+  }
+
+  .eyebrow { margin-bottom: 36px; }
+
+  .hero h1 {
+    grid-column: 1 / 7;
+    width: 100%;
+    margin: -26px 0 0;
+  }
+
+  .lede {
+    max-width: 440px;
+    margin: 34px 0 0 var(--hero-indent);
+  }
+
+  .hero-visual {
+    grid-column: 6 / 13;
+    grid-row: 2 / 5;
+    margin: 18px 0 0;
+    height: clamp(360px, 68dvh, 680px);
+    border: 1.5px solid var(--ink);
+  }
+
+  .hero-stage::after {
+    margin-left: var(--hero-indent);
+  }
+
+  .hero-top-img {
+    top: 0;
+    right: -5%;
+    width: clamp(320px, 65vw, 950px);
+  }
+}
+/* 平板與手機專屬排版（1024px 以下，含一般直/橫向平板與所有手機） */
+@media (max-width: 1024px) {
   .hero {
-    --hero-split: clamp(115px, 20dvh, 160px);
+    /* 1. 頂部第一層全寬黑條厚度 */
+    --hero-top-1: clamp(20px, 40dvh, 30px);
+    /* 2. 頂部第二層右側階梯黑條總厚度（從頂端 0 往下算，避免接縫白線） */
+    --hero-top-2: clamp(38px, 5.2dvh, 56px);
+    /* 3. 灰白區總高度：同時控制「黑條到藍底之間的空白」與「整體內容下移幅度」 */
+    --hero-split: clamp(165px, 20dvh, 200px);
+    /* 4. 底部 SCROLL 黑條高度（含手機底部安全區） */
     --hero-bar-h: calc(48px + env(safe-area-inset-bottom));
     background:
-      linear-gradient(var(--ink), var(--ink)) 0 0 / 100% 12px no-repeat,
-      linear-gradient(var(--ink), var(--ink)) 100% 0 / 60% 22px no-repeat,
+      linear-gradient(var(--ink), var(--ink)) 0 0 / 100% var(--hero-top-1) no-repeat,
+      linear-gradient(var(--ink), var(--ink)) 100% 0 / 65% var(--hero-top-2) no-repeat,
       linear-gradient(var(--ink), var(--ink)) 0 100% / clamp(180px, 55%, 280px) var(--hero-bar-h) no-repeat,
       linear-gradient(to bottom, transparent 0 var(--hero-split), var(--mint) var(--hero-split) 100%);
   }
 
   .hero-stage {
-    grid-template-columns: 1fr;
+    /* 左右安全邊距與內縮變數：文字用兩者相加留白，fon.webp 則用負值抵消達成左右滿版貼邊 */
+    --hero-pad: clamp(20px, 5vw, 44px);
+    --hero-indent: 10px;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: var(--hero-split) auto auto auto 1fr;
-    padding: 0 20px 0;
+    padding: 0 var(--hero-pad) 0;
   }
+
+  .hero-stage::before { display: none; }
 
   .eyebrow,
   .hero h1,
@@ -268,18 +303,71 @@
     grid-column: 1;
   }
 
+  /* 標籤跟隨 --hero-split 一起下移，並與下方標題維持固定間距 */
+  .eyebrow { margin-bottom: 42px; }
+
+  /* 標題縮小並靠左往上跨過藍線，同時清掉瀏覽器預設的上下 margin */
+  .hero h1 {
+    width: min(76%, 420px);
+    margin: -30px 0 0;
+  }
+
   .hero h1 .accent { box-shadow: 10px 10px 0 var(--ink); }
-  .lede { max-width: none; margin-top: 24px; }
-  .hero-visual { grid-row: 4; height: 240px; margin: 20px 0 28px; }
-  .hero-stage::after { grid-row: 5; }
-  .hero-stage::before { display: none; }
+
+  /* 說明文字左右同步內縮，左緣對齊上方 ID Card. 黑色陰影框、右緣不貼螢幕邊 */
+  .lede {
+    margin: 24px var(--hero-indent) 0 var(--hero-indent);
+  }
+
+  /* fon.webp 左右滿版貼邊；overflow: visible 讓右下角黑塊能往下延伸出圖片底緣 */
+  .hero-visual {
+    grid-row: 4;
+    height: clamp(200px, 30dvh, 360px);
+    margin: 20px calc(var(--hero-pad) * -1) 24px;
+    border-block: 1.5px solid var(--ink);
+    overflow: visible;
+  }
+
+  /* 左上角藍色方形：壓在 fon.webp 上層，top: -2px 蓋掉左側黑框線讓藍區無縫相連 */
+  .hero-visual::before {
+    content: "";
+    position: absolute;
+    top: -2px;
+    left: 0;
+    z-index: 2;
+    width: 44%;
+    height: 18%;
+    background: var(--mint);
+    pointer-events: none;
+  }
+
+  /* 右下角黑色方形：一半壓在 fon.webp 右下角、一半往下垂進藍區，且鎖在 card2.webp 之下 */
+  .hero-visual::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    width: 19%;
+    aspect-ratio: 1 / 1.05;
+    transform: translateY(50%);
+    background: var(--ink);
+    pointer-events: none;
+  }
+
+  .hero-stage::after {
+    grid-row: 5;
+    margin-left: var(--hero-indent);
+  }
+
+  /* 新圖（card2.webp）的平板與手機定位：只動這段，完全不影響電腦版 */
   .hero-top-img {
-    right: 4%;
-    bottom: calc(var(--hero-bar-h) + 12px);
-    width: clamp(140px, 44vw, 220px);
+    right: 2%;
+    bottom: calc(13dvh + env(safe-area-inset-bottom));
+    width: 60%;
+    max-width: 380px;
   }
 }
-
 /* ============================== PANELS ============================== */
 /* 把 980px 置中與左右 18px 留白移到表單區，同時保留 sticky 邊界 */
 .setup-body {
