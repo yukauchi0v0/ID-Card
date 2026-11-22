@@ -1,6 +1,6 @@
 /*
- * AR 顯示位置：示意圖 + 位置/間距/位移/大小/方向/穩定度控制。
- * 示意圖的像素比例只在 UI 使用；真正 AR 幾何在 js/ar/content.js。
+- AR 顯示位置：示意圖 + 位置/間距/位移/大小/方向/穩定度控制。
+- 示意圖的像素比例只在 UI 使用；真正 AR 幾何在 js/ar/content.js。
  */
 
 /* 左側示意圖、右側控制；680px 以下在 responsive.css 改成單欄。 */
@@ -13,24 +13,26 @@
 
 .diagram-wrap { min-width: 0; }
 
-/* 示意圖：藍框是卡片、綠框是內容；.overlap 時變紅色提醒。 */
+/* 示意圖：純白座標格線底；黑框是實體卡片、藍塊是 AR 內容；.overlap 時變斜紋警示。 */
 .diagram {
   position: relative;
   height: 210px;
   overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  background:
-    linear-gradient(135deg, rgba(186, 215, 223, 0.2), rgba(255, 226, 226, 0.23)),
-    #fff;
+  border: 1.5px solid var(--ink);
+  border-radius: 0;
+  background-color: var(--white);
+  background-image:
+    linear-gradient(to right, rgba(170, 169, 166, 0.35) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(170, 169, 166, 0.35) 1px, transparent 1px);
+  background-size: 16px 16px;
 }
 
 .diagram::before {
   content: "";
   position: absolute;
-  inset: 18px;
-  border: 1px dashed rgba(31, 47, 47, 0.12);
-  border-radius: 14px;
+  inset: 16px;
+  border: 1px dashed var(--line);
+  border-radius: 0;
 }
 
 .diagram-card {
@@ -40,16 +42,17 @@
   width: 122px;
   height: 77px;
   transform: translate(-50%, -50%);
-  border: 2px solid var(--blue);
-  border-radius: 11px;
-  background: var(--blue-soft);
-  box-shadow: 0 8px 20px rgba(57, 84, 84, 0.1);
+  border: 1.5px solid var(--ink);
+  border-radius: 0;
+  background: var(--surface);
+  box-shadow: 3px 3px 0 var(--line);
   display: grid;
   place-items: center;
-  color: var(--ink-soft);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
 }
 
 .diagram-content {
@@ -57,46 +60,69 @@
   width: 96px;
   height: 54px;
   transform: translate(-50%, -50%);
-  border: 2px solid var(--mint-strong);
-  border-radius: 9px;
+  border: 1.5px solid var(--ink);
+  border-radius: 0;
   background: var(--mint);
   display: grid;
   place-items: center;
-  color: var(--ink);
-  font-size: 10px;
-  font-weight: 800;
+  color: var(--white);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
   letter-spacing: 0.08em;
-  box-shadow: 0 8px 18px rgba(103, 191, 174, 0.18);
+  box-shadow: 3px 3px 0 var(--ink);
 }
 
 .diagram-content.overlap {
-  border-color: var(--danger);
-  background: var(--blush);
-  box-shadow: 0 8px 18px rgba(217, 94, 94, 0.15);
+  border-color: var(--ink);
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--ink) 0 6px,
+    var(--ink-soft) 6px 12px
+  );
+  color: var(--white);
+  box-shadow: 3px 3px 0 var(--mint);
 }
 
 .diagram-caption {
-  margin: 9px 2px 0;
+  margin: 10px 2px 0;
   color: var(--muted);
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1.6;
 }
 
-.diagram-caption strong { color: var(--ink-soft); }
+.diagram-caption strong { color: var(--ink); }
 
 .placement-controls { display: grid; gap: 14px; }
 
 .control-block { display: grid; gap: 7px; }
-.control-label { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--ink-soft); font-size: 11px; font-weight: 750; }
-.control-label output { color: var(--muted); font-size: 10.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
 
-/* 分段按鈕（位置/方向）：只有 .active 會填色。 */
+.control-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.control-label output {
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 分段按鈕（位置/方向）：只有 .active 會填純藍反白。 */
 .segmented {
   display: flex;
-  gap: 5px;
-  padding: 4px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
+  gap: 3px;
+  padding: 3px;
+  border: 1.5px solid var(--ink);
+  border-radius: 0;
   background: var(--surface-soft);
 }
 
@@ -105,22 +131,26 @@
   min-height: 34px;
   padding: 0 8px;
   border: 0;
-  border-radius: 8px;
-  color: var(--muted);
+  border-radius: 0;
+  color: var(--ink-soft);
   background: transparent;
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
+  transition: background-color 0.14s ease, color 0.14s ease;
+}
+
+.segmented button:hover:not(.active) {
+  color: var(--ink);
+  background: var(--white);
 }
 
 .segmented button.active {
-  color: var(--ink);
+  color: var(--white);
   background: var(--mint);
-  box-shadow: 0 5px 14px rgba(103, 191, 174, 0.2);
 }
 
-/* range 的 track/thumb 在 WebKit 與 Firefox 要分開寫。 */
+/* range 的 track/thumb 在 WebKit 與 Firefox 要分開寫；改為銳利方塊拉把。 */
 .range {
   width: 100%;
   height: 22px;
@@ -130,42 +160,84 @@
   cursor: pointer;
 }
 
-.range::-webkit-slider-runnable-track { height: 5px; border-radius: 999px; background: var(--blue); }
-.range::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; margin-top: -6.5px; border: 3px solid #fff; border-radius: 50%; background: var(--mint-strong); box-shadow: 0 2px 8px rgba(57, 84, 84, 0.25); }
-.range::-moz-range-track { height: 5px; border-radius: 999px; background: var(--blue); }
-.range::-moz-range-thumb { width: 14px; height: 14px; border: 3px solid #fff; border-radius: 50%; background: var(--mint-strong); }
+.range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 0;
+  background: var(--line);
+}
+
+.range::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -6px;
+  border: 1.5px solid var(--ink);
+  border-radius: 0;
+  background: var(--mint);
+}
+
+.range::-moz-range-track {
+  height: 4px;
+  border-radius: 0;
+  background: var(--line);
+}
+
+.range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--ink);
+  border-radius: 0;
+  background: var(--mint);
+}
 
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
 .select-wide {
   width: 100%;
   min-height: 40px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
+  border: 1.5px solid var(--line);
+  border-radius: 0;
   color: var(--ink);
-  background: #fff;
-  padding: 0 11px;
-  font-size: 12px;
+  background-color: var(--white);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--ink) 50%),
+    linear-gradient(135deg, var(--ink) 50%, transparent 50%);
+  background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  appearance: none;
+  padding: 0 32px 0 11px;
+  font-size: 12.5px;
+  outline: none;
+  transition: border-color 0.14s ease, box-shadow 0.14s ease;
 }
 
-.control-help { margin: 0; color: var(--muted); font-size: 10.5px; line-height: 1.6; }
+.select-wide:focus {
+  border-color: var(--mint-strong);
+  box-shadow: 3px 3px 0 var(--mint-strong);
+}
+
+.control-help { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
 
 .overlap-hint {
   margin: 0;
-  padding: 9px 11px;
-  border-radius: 10px;
-  color: #8e4b4b;
-  background: var(--blush);
-  font-size: 10.5px;
+  padding: 10px 12px;
+  border-left: 4px solid var(--mint);
+  border-radius: 0;
+  color: var(--white);
+  background: var(--ink);
+  font-size: 11px;
   line-height: 1.55;
 }
 
 .panel-note {
-  margin: 13px 0 0;
+  margin: 14px 0 0;
   padding: 10px 12px;
-  border-radius: 11px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--ink);
+  border-radius: 0;
   color: var(--ink-soft);
-  background: var(--blue-soft);
-  font-size: 10.5px;
+  background: var(--surface-soft);
+  font-size: 11px;
   line-height: 1.6;
 }

@@ -1,10 +1,10 @@
 /*
- * 全站 reset 與文件基底。
- * 三頁（landing/studio/viewer）都先載入這支，之後才由各頁覆寫。
+- 全站 reset 與文件基底。
+- 三頁（landing/studio/viewer）都先載入這支，之後才由各頁調整。
  */
 * { box-sizing: border-box; }
 
-/* [hidden] 必須赢過任何 display 設定，否則 JS 用 hidden 切換會失效。 */
+/* [hidden] 必須贏過任何 display 設定，否則 JS 用 hidden 切換會失效。 */
 [hidden] { display: none !important; }
 
 html, body {
@@ -17,19 +17,19 @@ html, body {
   text-rendering: optimizeLegibility;
 }
 
-/* 三層 radial gradient 是 landing/studio 的共用背景，viewer 會再蓋一層玻璃卡。 */
+/* 純 CSS 細方格底紋（使用 #AAA9A6 35% 透明度），體積 0 KB 且不影響效能。 */
 body {
   min-height: 100dvh;
   overflow-x: hidden;
-  background:
-    radial-gradient(900px 480px at -8% -10%, rgba(153, 221, 204, 0.42), transparent 60%),
-    radial-gradient(760px 500px at 108% 6%, rgba(186, 215, 223, 0.5), transparent 62%),
-    radial-gradient(560px 420px at 70% 100%, rgba(255, 226, 226, 0.7), transparent 65%),
-    var(--bg);
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(to right, rgba(170, 169, 166, 0.35) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(170, 169, 166, 0.35) 1px, transparent 1px);
+  background-size: 32px 32px;
 }
 
 /* AR 啟動時鎖住背景捲動，避免手指滑動同時翻頁又捲動頁面。 */
 body.ar-active { overflow: hidden; overscroll-behavior: none; }
 button, input, textarea, select { font: inherit; }
 button { -webkit-tap-highlight-color: transparent; }
-:focus-visible { outline: 2px solid var(--mint-strong); outline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--mint-strong); outline-offset: 2px; }
