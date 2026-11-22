@@ -4,25 +4,48 @@
  */
 
 /* ============================== HERO ============================== */
+/* 拿掉 #setup 頂部內距，把頂部安全區交給滿版 .hero 自己管理 */
 #setup {
   min-height: 100dvh;
-  padding: max(18px, env(safe-area-inset-top)) 18px max(24px, env(safe-area-inset-bottom));
+  padding: 0 18px max(24px, env(safe-area-inset-bottom));
 }
 
 .setup-inner { width: min(100%, 980px); margin: 0 auto; }
 
+/* 滿版首屏舞台：電腦與手機皆剛好佔滿一個視窗高度（100dvh），表單自然落在第二屏 */
 .hero {
   position: relative;
-  padding: clamp(24px, 5vw, 56px) 4px clamp(24px, 5vw, 44px);
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: max(32px, env(safe-area-inset-top)) 4px max(72px, env(safe-area-inset-bottom));
+  margin-bottom: clamp(28px, 5vw, 48px);
+  border-bottom: 1.5px solid var(--ink);
 }
 
 .hero > * { position: relative; z-index: 1; }
 
-/* 右上角像素馬賽克裝飾：純 SVG 內嵌，不增加 HTML 標籤且不影響效能。 */
+/* 左下角捲動提示：純 CSS 繪製，提醒使用者往下滑開始填寫表單 */
+.hero::before {
+  content: "SCROLL ↓";
+  position: absolute;
+  left: 4px;
+  bottom: max(22px, env(safe-area-inset-bottom));
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  pointer-events: none;
+}
+
+/* 右上角像素馬賽克裝飾：固定在滿版首屏右上角，之後可依你的設計替換 */
 .hero::after {
   content: "";
   position: absolute;
-  top: clamp(20px, 4vw, 48px);
+  top: max(28px, calc(env(safe-area-inset-top) + 12px));
   right: 4px;
   width: clamp(64px, 12vw, 112px);
   aspect-ratio: 1;
@@ -54,8 +77,8 @@
 }
 
 .hero h1 {
-  margin: 20px 0 0;
-  font-size: clamp(44px, 10vw, 88px);
+  margin: 22px 0 0;
+  font-size: clamp(50px, 11vw, 108px);
   line-height: 1;
   letter-spacing: -0.05em;
   font-weight: 800;
@@ -73,14 +96,15 @@
 
 .lede {
   max-width: 660px;
-  margin: 24px 0 0;
+  margin: 26px 0 0;
   color: var(--ink-soft);
-  font-size: clamp(14px, 2.7vw, 15.5px);
+  font-size: clamp(14px, 2.7vw, 16px);
   line-height: 1.8;
 }
-
 /* ============================== PANELS ============================== */
 /* 區塊卡：實心灰白底 + 銳利黑框與硬陰影，讓底層格線在邊界俐落收住。 */
+/* 讓表單區獨立計算邊距，同時作為 .action-bar 的 sticky 邊界 */
+.setup-body { display: flow-root; }
 .panel {
   margin: 18px 0;
   padding: clamp(18px, 3.6vw, 30px);
