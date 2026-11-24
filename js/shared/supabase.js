@@ -33,6 +33,10 @@ export function getClient() {
   if (!client) {
     client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
       auth: {
+        // 明確指定 storageKey：不同版本的 SDK 對「專案 ref」推導方式曾
+        // 改過，固定成官方格式（sb-<project-ref>）才不會換版後讀不到
+        // 舊的登入狀態，逼使用者重新登入。
+        storageKey: storageKey(),
         persistSession: true,
         detectSessionInUrl: true,
         flowType: "pkce",
@@ -41,4 +45,10 @@ export function getClient() {
     });
   }
   return client;
+}
+
+/** 由專案 URL 推出 Supabase 慣用的 localStorage 鍵名。 */
+function storageKey() {
+  const ref = new URL(SUPABASE_URL).hostname.split(".")[0];
+  return "sb-" + ref + "-auth-token";
 }
