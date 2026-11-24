@@ -11,6 +11,9 @@
 import { SUPABASE_KEY, SUPABASE_URL } from "../config.public.js";
 
 let client = null;
+// 舊的 magic link 連結格式不同，SDK 會嘗試交換失敗並印出網址錯誤；
+// 我們自己處理錯誤訊息（見 cloud-ui.js），因此把這幾種 log 收掉。
+let urlLogsSilenced = false;
 
 /**
  * vendor bundle 是否已載入。
@@ -31,6 +34,7 @@ export function isCloudConfigured() {
 export function getClient() {
   if (!isCloudConfigured()) return null;
   if (!client) {
+    silenceUrlErrors();
     client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
       auth: {
         // 明確指定 storageKey：不同版本的 SDK 對「專案 ref」推導方式曾
@@ -51,4 +55,27 @@ export function getClient() {
 function storageKey() {
   const ref = new URL(SUPABASE_URL).hostname.split(".")[0];
   return "sb-" + ref + "-auth-token";
+}
+
+/**
+ * 把 GoTrue 的 console.error 收掉。
+ *
+ * 只要網址上還帶著 `?code=` 或 `#access_token=`（例如使用者直接重新整理
+ * 登入回來的網址、或連結已用過），SDK 就會嘗試交換並失敗，然後自己印出
+ * 一整行英文錯誤。使用者看到的應該是 cloud-ui.js 寫在登入面板裡的中文
+ * 說明，而不是 console 的紅字，所以這裡只過濾「網址參數相關」的訊息，
+ * 其他錯誤照常顯示。
+ */
+function silenceUrlErrors() {
+  if (urlLogsSilenced || typeof console === "undefined") return;
+  urlLogsSilenced = true;
+  const original = console.error;
+  const patterns = [/code verifier/i, /auth code/i, /access_token/i, /PKCE/i, /\burl\b/i];
+  console.error = function (...args) {
+    const text = args
+      .map((arg) => (typeof arg === "string" ? arg : arg && arg.message ? String(arg.message) : ""))
+      .join(" ");
+    if (patterns.some((pattern) => pattern.test(text))) return;
+    original.apply(console, args);
+  };
 }

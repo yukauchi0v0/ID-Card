@@ -47,5 +47,9 @@ export const arState = {
 
   // 由宿主頁面（studio/viewer）注入；AR 核心不直接操作它們的 UI。
   onReady: null,
-  onError: null
+  onError: null,
+
+  // 目前是哪個入口在跑 AR（"studio" 或 "viewer"）。viewer 會在 HUD 多顯示
+  // 一顆「看完了？聯絡我」按鈕，studio 不需要。
+  host: ""
 };

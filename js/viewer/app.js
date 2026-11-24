@@ -3,13 +3,21 @@
  *
  * 這個順序是刻意的：收到名片的人先看到姓名/電話/Email，即使相機權限被
  * 拒絕或裝置不支援 AR，資訊仍然可用。AR 只是加分，不應阻擋名片內容。
+ *
+ * 聯絡區（社群按鈕、儲存名片、分享名片）要看完 AR 之後才出現：
+ * 第一次打開只給基本資料與「用 AR 看」，看完再提供聯絡方式，
+ * 順序才符合「先體驗、後交換聯絡」。
  */
 import { viewerDom } from "./dom.js";
 import { resolveManifest } from "./manifest.js";
 import { arDom } from "../ar/dom.js";
 import { initArUi, startAr, stopAr } from "../ar/runtime.js";
+import { hasContactInfo, initContactActions, renderContactActions } from "./contact.js";
+import { normalizeHttpUrl } from "../utils/format.js";
 
 let manifest = null;
+// 是否已經看完一次 AR；決定名片頁要不要顯示聯絡區。
+let revealed = false;
 
 /** 回到名片頁，並依 manifest 狀態決定 AR 按鈕是否可用。 */
 function showProfile() {
@@ -18,6 +26,20 @@ function showProfile() {
   viewerDom.loading.hidden = true;
   viewerDom.arBtn.disabled = !manifest || manifest.targets.length === 0;
   document.body.classList.remove("ar-active");
+  // 只有看過 AR（或直接返回）才顯示聯絡區；用 class 控制，讓 CSS 決定排版。
+  const showContact = revealed && manifest && hasContactInfo(manifest.profile);
+  viewerDom.contact.hidden = !showContact;
+  document.body.classList.toggle("contact-ready", Boolean(showContact));
+}
+
+/** 看完 AR 回到名片頁：顯示聯絡區並捲到那裡。 */
+function revealContact({ scroll = false } = {}) {
+  revealed = true;
+  stopAr();
+  showProfile();
+  if (scroll && !viewerDom.contact.hidden) {
+    viewerDom.contact.scrollIntoView({ block: "center", behavior: "smooth" });
+  }
 }
 
 /** 顯示錯誤卡片（缺 card 參數、404、格式錯誤等），並隱藏名片與 loading。 */
@@ -26,7 +48,7 @@ function showError(message) {
   viewerDom.loading.hidden = true;
   viewerDom.error.hidden = false;
   viewerDom.errorMsg.textContent = message;
-  document.body.classList.remove("ar-active");
+  document.body.classList.remove("ar-active", "contact-ready");
 }
 
 /**
@@ -66,13 +88,8 @@ function renderProfile(profile) {
   contactLink(viewerDom.phone, profile.phone, phone ? "tel:" + phone : "");
   contactLink(viewerDom.email, profile.email, profile.email ? "mailto:" + profile.email : "");
 
-  let website = "";
-  try {
-    const parsed = new URL(profile.website);
-    if (parsed.protocol === "http:" || parsed.protocol === "https:") website = parsed.href;
-  } catch (err) {
-    // 沒有有效網址時只隱藏那一列。
-  }
+  // 製作端可能只填 `example.com`；補成 https 才能點，其他 scheme 一律忽略。
+  const website = normalizeHttpUrl(profile.website);
   contactLink(viewerDom.website, website, website);
 
   document.title = profile.name ? profile.name + " · ID Card" : "ID Card · Viewer";
@@ -96,11 +113,15 @@ async function init() {
   try {
     manifest = await resolveManifest(cardUrl);
     renderProfile(manifest.profile);
+    // 聯絡區先建好（隱藏狀態），等看完 AR 再一次顯示。
+    renderContactActions(manifest.profile);
     viewerDom.arBtn.disabled = manifest.targets.length === 0;
   } catch (err) {
     showError(err.message || "卡片資料格式不正確。");
     return;
   }
+
+  initContactActions();
 
   viewerDom.arBtn.addEventListener("click", () => {
     if (!manifest) return;
@@ -115,6 +136,7 @@ async function init() {
         targets: manifest.targets,
         settings: manifest.settings,
         mindUrl: manifest.mindUrl,
+        host: "viewer",
         onReady: () => {
           viewerDom.loading.hidden = true;
         },
@@ -129,11 +151,12 @@ async function init() {
     }
   });
 
-  arDom.backBtn.addEventListener("click", () => {
-    stopAr();
-    showProfile();
-  });
+  // HUD 上的「看完了？聯絡我」：結束 AR、回到名片並捲到聯絡區。
+  arDom.viewerContactCta.addEventListener("click", () => revealContact({ scroll: true }));
+
+  arDom.backBtn.addEventListener("click", () => revealContact());
   arDom.errorBackBtn.addEventListener("click", () => {
+    // 相機失敗也讓人回到名片；但沒看到 AR 就不算看完，聯絡區維持隱藏。
     stopAr();
     showProfile();
   });

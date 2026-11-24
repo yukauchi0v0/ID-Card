@@ -23,6 +23,15 @@ export const viewerDom = {
   websiteItem: byId("viewerWebsiteItem"),
   website: byId("viewerWebsite"),
   arBtn: byId("viewerArBtn"),
+
+  // 聯絡區（看完 AR 後才顯示）：社群按鈕、儲存名片、分享名片。
+  contact: byId("viewerContact"),
+  links: byId("viewerLinks"),
+  actions: byId("viewerActions"),
+  saveBtn: byId("viewerSaveBtn"),
+  shareBtn: byId("viewerShareBtn"),
+  shareTip: byId("viewerShareTip"),
+
   error: byId("viewerError"),
   errorMsg: byId("viewerErrorMsg"),
   loading: byId("viewerLoading")

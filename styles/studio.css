@@ -35,6 +35,54 @@
 }
 .profile-grid .field:last-child { grid-column: 1 / -1; }
 
+/* 社群聯絡方式：每個平台一列，勾選框在左、帳號輸入框在右。
+   未勾選時輸入框由 hidden 隱藏，整區不需要額外展開/收合動畫。 */
+.social-picker {
+  margin: 18px 0 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface-soft);
+}
+.social-picker legend {
+  padding: 0 8px;
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+.social-note { margin: 0 0 12px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.social-list { display: grid; gap: 8px; }
+.social-row {
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+.social-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-soft);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.social-toggle input { width: 16px; height: 16px; accent-color: var(--mint-strong); }
+.social-row.is-on .social-toggle { color: var(--ink); }
+.social-account {
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+}
+.social-account:focus-visible { outline: 2px solid var(--mint-strong); outline-offset: 1px; }
+
 /* action bar 右側的「存到雲端 / 進入 AR / 發布」按鈕群。 */
 .action-actions {
   display: flex;
@@ -101,6 +149,7 @@
 @media (max-width: 640px) {
   .profile-grid { grid-template-columns: 1fr; }
   .account-grid { grid-template-columns: 1fr; }
+  .social-row { grid-template-columns: 1fr; gap: 6px; }
   .action-actions { flex-direction: column; width: 100%; }
   .action-actions .primary-btn,
   .action-actions .secondary-btn { width: 100%; }

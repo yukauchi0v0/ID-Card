@@ -5,3 +5,6 @@ Thumbs.db
 node_modules/
 *.log
 .netlify/
+
+# 本機測試用的假卡片包（不是正式內容）
+/cards/test-card/

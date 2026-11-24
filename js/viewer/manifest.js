@@ -12,6 +12,7 @@
  */
 import { CARD_H, DEFAULT_SETTINGS, MAX_TARGETS, TYPE_LABELS } from "../config.js";
 import { getClient } from "../shared/supabase.js";
+import { normalizeLinks } from "../shared/social.js";
 
 // 資料庫產生的名片代碼：8 碼、小寫英數（排除容易混淆的 0/1/l/o）。
 const CARD_CODE = /^[a-z0-9]{8}$/;
@@ -80,7 +81,9 @@ export function normalizeManifest(raw, baseUrl) {
       company: text(raw.profile && raw.profile.company),
       phone: text(raw.profile && raw.profile.phone),
       email: text(raw.profile && raw.profile.email),
-      website: text(raw.profile && raw.profile.website)
+      website: text(raw.profile && raw.profile.website),
+      // 舊版卡片沒有 links；normalizeLinks 對 undefined 回空陣列。
+      links: normalizeLinks(raw.profile && raw.profile.links)
     },
     settings: Object.assign({}, DEFAULT_SETTINGS, raw.settings || {}),
     mindUrl,

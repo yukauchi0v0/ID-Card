@@ -62,11 +62,20 @@ cards/<slug>/
 
 ### 觀看名片
 
-1. 掃名片上的 QR，或開啟觀看網址。
+1. 掃名片上的 QR，或開啟觀看網址（`viewer.html?card=<代碼>`）。
 2. 觀看端向 Supabase 讀取最新已發布的名片，顯示姓名、職稱、公司、電話、Email、網站。
+   這時**還不會**出現社群按鈕與聯絡動作。
 3. 按「用 AR 看」，允許相機權限。
 4. 把鏡頭對準卡蓋圖案；鎖定後可左右滑動換頁，或滑動卡蓋切換圖案。
-5. 按「返回名片」停止相機並回到名片頁。
+5. 看完之後，按「返回名片」或 AR 畫面下方的「看完了？聯絡我 →」回到名片頁；
+   這時才顯示聯絡區：
+   - 社群按鈕（LINE、Instagram、Threads、Facebook、X、LinkedIn、GitHub、自訂網址）
+   - 「儲存名片」下載 `.vcf`，可直接加到手機通訊錄
+   - 「分享這張名片」用系統分享面板；不支援時複製網址
+
+> 社群按鈕只會產生 http(s) 連結；`javascript:` 之類的輸入會在寫入資料庫前就丟掉，
+> vCard 的文字也會轉義，避免姓名裡的換行變成額外欄位。
+> `navigator.share()` 必須在使用者手勢中同步呼叫，程式碼刻意不先 `await`，否則 iOS Safari 會擋下分享。
 
 
 ## 專案結構
@@ -96,15 +105,17 @@ js/
   shared/
     toast.js                AR／studio 共用的 toast
     supabase.js             Supabase client（未設定時回傳 null）
+    social.js               社群連結正規化、安全網址、vCard 產生
   studio/
     main.js                 注入 AR shell，載入 studio app
     app.js                  製作流程協調
     state.js                製作端 state
     dom.js                  製作端 DOM refs
-    auth.js                 magic link 登入、session、登出
+    auth.js                 email + 密碼登入／註冊、magic link 備援、session、登出
     cloud.js                雲端草稿存檔／載入、發布、上傳上限檢查
     cloud-ui.js             帳號面板、存到雲端、發布流程
     profile.js              名片資訊表單
+    social-ui.js            社群平台勾選與帳號輸入
     manifest.js             產生 card.json
     card-package.js         打包 zip（備援發布方式）
     share.js                觀看網址、QR、複製與下載
@@ -116,18 +127,19 @@ js/
       enter-button.js
   viewer/
     main.js                 注入 AR shell，載入 viewer app
-    app.js                  讀 manifest、名片頁、啟動 AR
+    app.js                  讀 manifest、名片頁、啟動 AR、看完才顯示聯絡區
+    contact.js              社群按鈕、儲存名片（vCard）、分享名片
     dom.js                  觀看端 DOM refs
     manifest.js             短代碼／舊式路徑解析、manifest 驗證
   ar/
     state.js                AR singleton state
     dom.js                  AR shell DOM refs
-    shell.js                注入 HUD／面板／toast／錯誤面板
+    shell.js                注入 HUD／面板／toast／錯誤面板（含「看完了？聯絡我」）
     runtime.js              initArUi / startAr / stopAr
-    scene.js                動態建立 a-scene、target anchors、teardown
+    scene.js                動態建立 a-scene、target anchors、teardown、辨識資料錯誤
     content.js              平面內容 layout、targetFound/Lost、換頁
     panel.js                2D 內容面板
-    hud.js                  HUD、頁碼、圓點
+    hud.js                  HUD、頁碼、圓點、viewer 聯絡 CTA
     gestures.js             左右滑動換頁
   media/
     compiler.js             MindAR Compiler 取得與特徵數檢查
@@ -135,7 +147,7 @@ js/
     embeds.js               YouTube／Vimeo URL 處理
   utils/
     files.js                圖片載入、壓縮、檔案限制
-    format.js               pad2、clamp、escapeHtml、nextPaint
+    format.js               pad2、clamp、escapeHtml、nextPaint、isHttpUrl、normalizeHttpUrl
     slug.js                 ASCII slug；中文名稱用穩定 hash
     signature.js            卡蓋集合簽章（跨帳號沿用草稿）
     extension.js            由檔名／MIME 推斷副檔名
@@ -153,6 +165,7 @@ tests/
   viewer-source.test.js
   cloud-row.test.js
   auth.test.js
+  social.test.js            社群連結、安全網址、vCard
   structure.test.js
 ```
 
@@ -200,6 +213,13 @@ node --check js/ar/runtime.js
 ```
 
 瀏覽器回歸需要用支援 WebGL 的 Chrome；headless SwiftShader 可以跑，但一張圖編譯可能超過 90 秒，測試請等 180 秒。不要加 `--disable-gpu`，否則 MindAR 的 TensorFlow kernel 會退回 CPU 而失敗。
+
+社交聯絡卡的瀏覽器回歸只需要本機靜態伺服器（不需要相機、不需要編譯）：
+
+1. 在 `cards/test-card/` 放一份 `card.json`（含 `profile.links`）與任意 `card.mind`。
+2. 開 `viewer.html?card=cards/test-card/card.json`。
+3. 確認：一開始看不到聯絡區；AR 鎖定後 HUD 出現「看完了？聯絡我」；按下之後聯絡區出現、社群網址正確、`javascript:` 會被忽略。
+4. 按「儲存名片」應下載 `.vcf`；按「分享這張名片」在支援的瀏覽器會開系統分享，不支援時複製網址。
 
 ## 部署
 

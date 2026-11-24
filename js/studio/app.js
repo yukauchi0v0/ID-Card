@@ -14,6 +14,7 @@ import { setCompileProgress, showCompileOverlay } from "./ui/compile-overlay.js"
 import { initTargets, renderCards } from "./ui/targets.js";
 import { initSettings, updateSettingsUi } from "./ui/settings.js";
 import { initProfile } from "./profile.js";
+import { initSocialLinks } from "./social-ui.js";
 import { initCloudUi } from "./cloud-ui.js";
 import { initArUi, startAr, stopAr } from "../ar/runtime.js";
 import { arDom } from "../ar/dom.js";
@@ -207,6 +208,7 @@ export function initApp() {
   updateSettingsUi();
   renderCards();
   initProfile();
+  initSocialLinks();
 
   arDom.backBtn.addEventListener("click", exitAr);
   arDom.errorBackBtn.addEventListener("click", exitAr);

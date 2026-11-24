@@ -48,6 +48,8 @@ export function mountArShell({ backLabel = "返回設定" } = {}) {
           <span class="sep"></span>
           <span id="swipeHint">左右滑動切換</span>
         </div>
+        <!-- 只有 viewer 在鎖定內容時顯示：看完直接回到名片並捲到聯絡區。 -->
+        <button id="viewerContactCta" class="service-cta" type="button" hidden>看完了？聯絡我 <span aria-hidden="true">→</span></button>
       </div>
 
       <div id="errorPanel" class="error-panel" hidden>

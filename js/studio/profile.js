@@ -8,8 +8,10 @@
 import { slugify } from "../utils/slug.js";
 import { studioState } from "./state.js";
 import { studioDom } from "./dom.js";
+import { renderSocialLinks } from "./social-ui.js";
 
 // 欄位名稱要與 studio.html 的 id 後綴、DEFAULT_PROFILE 的 key 一致。
+// 社群連結（links）不在這裡：它由 social-ui.js 產生的勾選列同步。
 const FIELDS = ["name", "title", "company", "phone", "email", "website", "slug"];
 
 // profileName / profileTitle / ... 由欄位名稱組出對應的 DOM 參照。
@@ -23,6 +25,7 @@ export function renderProfile() {
     const input = inputFor(key);
     if (input) input.value = studioState.profile[key] || "";
   });
+  renderSocialLinks();
 }
 
 /** 綁定所有 profile 欄位的事件；由 initApp() 呼叫一次。 */

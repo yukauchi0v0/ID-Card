@@ -61,8 +61,10 @@ function releaseWakeLock() {
  * @param {string} options.mindUrl 編譯後的 `.mind` Blob URL。
  * @param {() => void} [options.onReady] 相機與 scene 就緒時呼叫。
  * @param {(error: any) => void} [options.onError] 啟動失敗時呼叫。
+ * @param {"studio"|"viewer"} [options.host] 目前入口，決定 HUD 是否顯示
+ *   「看完了？聯絡我」按鈕。
  */
-export function startAr({ targets, settings, mindUrl, onReady, onError }) {
+export function startAr({ targets, settings, mindUrl, onReady, onError, host = "" }) {
   teardownScene();
   closePanel();
   stopActiveVideo();
@@ -74,6 +76,7 @@ export function startAr({ targets, settings, mindUrl, onReady, onError }) {
   arState.mindUrl = mindUrl;
   arState.onReady = onReady || null;
   arState.onError = onError || null;
+  arState.host = host;
   arState.sceneReady = false;
   arState.cameraError = false;
   arState.interactive = false;
@@ -127,12 +130,14 @@ export function stopAr() {
   arDom.arHud.hidden = true;
   arDom.videoSoundBtn.hidden = true;
   arDom.panelOpenBtn.hidden = true;
+  arDom.viewerContactCta.hidden = true;
   document.body.classList.remove("ar-active", "panel-open");
   arState.sceneEl = null;
   arState.cards = [];
   arState.targets = [];
   arState.onReady = null;
   arState.onError = null;
+  arState.host = "";
   arState.settings = { ...DEFAULT_SETTINGS };
   arState.currentPage = 0;
   arState.activeVideo = null;

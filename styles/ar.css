@@ -186,6 +186,30 @@
 
 body.panel-open .hud-bottom { opacity: 0; pointer-events: none; }
 
+/* 觀看端專用：看完內容後回到名片並跳到聯絡區。放在頁碼下方，單獨一顆。 */
+.service-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--ink);
+  box-shadow: 0 10px 26px rgba(10, 10, 10, 0.28);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.service-cta[hidden] { display: none; }
+
+.service-cta:active { transform: translateY(1px); }
+
 .dots { display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 24px; pointer-events: auto; }
 
 .dot {

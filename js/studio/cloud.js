@@ -14,6 +14,7 @@ import { UPLOAD_LIMITS } from "../config.js";
 import { markerAspect } from "./manifest.js";
 import { signatureOf } from "../utils/signature.js";
 import { extensionFor } from "../utils/extension.js";
+import { normalizeLinks } from "../shared/social.js";
 
 const BUCKET = "card-assets";
 const NO_CLOUD = "雲端服務未載入，請重新整理頁面。";
@@ -102,7 +103,9 @@ export function toCardRow({ userId, profile, settings, targets, signature = "", 
       company: profile.company || "",
       phone: profile.phone || "",
       email: profile.email || "",
-      website: profile.website || ""
+      website: profile.website || "",
+      // 社群連結存成乾淨格式；讀回時即使舊資料格式不對也不會炸。
+      links: normalizeLinks(profile.links)
     },
     settings: Object.assign({}, settings || {}),
     targets: targets.map((target, index) => toStoredTarget(target, index + 1, userId)),
@@ -408,7 +411,9 @@ export async function publishCard({ userId, profile, settings, targets, mindBlob
       company: profile.company || "",
       phone: profile.phone || "",
       email: profile.email || "",
-      website: profile.website || ""
+      website: profile.website || "",
+      // 觀看端會把這些連結渲染成按鈕；發布前先正規化，擋掉壞資料。
+      links: normalizeLinks(profile.links)
     },
     settings: Object.assign({}, settings || {}),
     mind: publicUrl(publishedPath(userId, version, mindFile)),

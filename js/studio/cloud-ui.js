@@ -22,7 +22,7 @@ import {
 import { renderCards } from "./ui/targets.js";
 import { updateSettingsUi } from "./ui/settings.js";
 import { renderProfile } from "./profile.js";
-import { targetSignature } from "./session.js";
+import { hasLocalSession, targetSignature } from "./session.js";
 import { initShare, openShare } from "./share.js";
 import { pad2 } from "../utils/format.js";
 import { slugify } from "../utils/slug.js";
@@ -155,8 +155,10 @@ async function onSignedIn(session) {
     dom.signInStatus.textContent = "已登入。";
     return;
   }
-  if (state.targets.length) {
+  if (state.targets.length && hasLocalSession()) {
     // 先在本機做好、之後才登入：把這份內容建立成雲端草稿。
+    // 只有「本機真的載入過內容」才寫上雲端；空白的新裝置不該蓋掉
+    // 已經存在雲端的草稿（例如雲端檔案暫時抓失敗時）。
     await createDraftFromTargets({
       userId,
       profile: state.profile,

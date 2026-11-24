@@ -105,6 +105,13 @@
           <label class="field"><span>網站</span><input id="profileWebsite" type="url" maxlength="200" placeholder="https://" autocomplete="url" /></label>
           <label class="field"><span>卡片網址代稱（slug）</span><input id="profileSlug" maxlength="40" pattern="[a-z0-9-]*" placeholder="my-card" /></label>
         </div>
+
+        <!-- 社群聯絡方式：勾選後才顯示輸入框，填了才會出現在觀看端名片上。 -->
+        <fieldset class="social-picker">
+          <legend>社群與聯絡方式（選填）</legend>
+          <p class="social-note">勾選要放在名片上的平台；對方看完 AR 之後才會看到這些按鈕。</p>
+          <div id="socialList" class="social-list"></div>
+        </fieldset>
       </section>
 
       <!-- 02：卡蓋圖與內容。這個順序就是 AR 頁面 1、2、3…，最多 8 張。 -->

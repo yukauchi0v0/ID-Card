@@ -7,6 +7,7 @@
  */
 import { CARD_H, DEFAULT_SETTINGS } from "../config.js";
 import { slugify } from "../utils/slug.js";
+import { normalizeLinks } from "../shared/social.js";
 
 /**
  * 取得卡蓋圖的寬高比（height / width）。
@@ -26,7 +27,7 @@ export function markerAspect(target) {
  * 建立發布用 manifest。
  *
  * @param {object} options
- * @param {object} options.profile 名片資料（name/title/company/phone/email/website/slug）。
+ * @param {object} options.profile 名片資料（name/title/company/phone/email/website/slug/links）。
  * @param {Array<object>} options.targets 卡蓋與內容。
  * @param {object} options.settings AR 顯示設定。
  * @param {Array<string|undefined>} [options.mediaPaths] 與 targets 同索引的 media 相對路徑。
@@ -43,7 +44,9 @@ export function buildCardManifest({ profile, targets, settings, mediaPaths = [] 
       company: profile.company || "",
       phone: profile.phone || "",
       email: profile.email || "",
-      website: profile.website || ""
+      website: profile.website || "",
+      // 社群聯絡方式只留已知平台與非空帳號；觀看端會再驗證一次網址。
+      links: normalizeLinks(profile.links)
     },
     settings: Object.assign({}, DEFAULT_SETTINGS, settings || {}),
     mind: "card.mind",

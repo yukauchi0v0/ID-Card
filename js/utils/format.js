@@ -47,3 +47,40 @@ export function byteLabel(bytes) {
   if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + " KB";
   return (bytes / (1024 * 1024)).toFixed(1) + " MB";
 }
+
+/**
+ * 判斷字串是不是安全的 http(s) 網址。
+ * 名片資料來自使用者輸入，任何要放進 href 的網址都要先過這關，
+ * 才不會讓 `javascript:` 或 `data:` 變成可點擊的連結。
+ *
+ * @param {unknown} value
+ * @returns {boolean}
+ */
+export function isHttpUrl(value) {
+  if (typeof value !== "string") return false;
+  try {
+    const url = new URL(value.trim());
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch (err) {
+    return false;
+  }
+}
+
+/**
+ * 把使用者輸入的網址補成完整網址。
+ *
+ * 對方可能只打 `example.com` 或 `www.example.com/blog`；這種字串放進
+ * href 會被瀏覽器當成相對路徑（指到本站），所以先補 `https://`。
+ * 已經是 http(s) 的會正規化；其他 scheme（`javascript:`、`data:`、`mailto:`）
+ * 一律視為不安全，回傳空字串讓呼叫端忽略。
+ *
+ * @param {unknown} value
+ * @returns {string} 安全的網址；無法使用時為空字串
+ */
+export function normalizeHttpUrl(value) {
+  if (typeof value !== "string") return "";
+  const raw = value.trim();
+  if (!raw) return "";
+  const withScheme = /^[a-z][a-z0-9+.\-]*:/i.test(raw) ? raw : "https://" + raw;
+  return isHttpUrl(withScheme) ? new URL(withScheme).href : "";
+}

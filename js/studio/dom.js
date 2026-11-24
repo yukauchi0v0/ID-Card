@@ -36,6 +36,9 @@ export const studioDom = {
   profileEmail: byId("profileEmail"),
   profileWebsite: byId("profileWebsite"),
   profileSlug: byId("profileSlug"),
+
+  // 社群聯絡方式：平台清單由 JS 依 SOCIAL_PLATFORMS 產生。
+  socialList: byId("socialList"),
   publishBtn: byId("publishBtn"),
 
   // AR 顯示位置示意圖與控制項。

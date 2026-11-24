@@ -28,6 +28,18 @@ export function targetSignature() {
   return signatureOf(state.targets);
 }
 
+// 本機暫存是否已經載入過內容；雲端還原後就不該再被本機資料覆蓋。
+let loaded = false;
+
+/**
+ * 本機暫存是否已有內容。
+ * 已登入時雲端草稿優先；本機只有在「雲端是空的」而且這裡回傳 true 時
+ * 才會被寫上雲端，避免空白裝置蓋掉已經存好的草稿。
+ */
+export function hasLocalSession() {
+  return loaded;
+}
+
 /**
  * 開啟（必要時建立）儲存用的 IndexedDB。
  * 每個函式各自開關連線，避免長時間持有 transaction 造成 blocked。
@@ -169,6 +181,7 @@ export async function restoreSession(options = {}) {
     state.settings = Object.assign({}, state.settings, record.settings || {});
     state.mindBlob = record.mindBlob || null;
     state.mindSignature = record.signature || "";
+    loaded = true;
     // 先讓表單與設定 UI 反映還原值，再重畫卡片清單。
     renderProfile();
     updateSettingsUi();

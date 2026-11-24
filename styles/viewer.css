@@ -88,8 +88,87 @@ body {
   line-height: 1.6;
 }
 
-/* 錯誤卡沿用名片卡版型，只改邊框與說明文字顏色。 */
-.viewer-error {
+/* 看完 AR 後才出現的聯絡區：上方一條分隔線，下方是社群按鈕與兩個動作。 */
+.viewer-contact-panel {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.viewer-contact-panel[hidden] {
+  display: none;
+}
+
+.viewer-section-title {
+  margin: 0;
+  font-size: 16px;
+  letter-spacing: -0.01em;
+}
+
+.viewer-section-note {
+  margin: 4px 0 14px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* 社群/電話/Email 按鈕自動換行；每顆都是可點的大目標（至少 40px 高）。 */
+.viewer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.viewer-links[hidden] {
+  display: none;
+}
+
+.viewer-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  color: var(--ink);
+  background: #fff;
+  font-size: 12px;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.viewer-link:hover,
+.viewer-link:focus-visible {
+  background: var(--mint);
+  color: #fff;
+}
+
+.viewer-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.viewer-actions .secondary-btn {
+  min-height: 44px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.viewer-actions .secondary-btn:hover,
+.viewer-actions .secondary-btn:focus-visible {
+  background: var(--mint);
+  color: #fff;
+}
+
+/* 錯誤卡沿用名片卡版型，只改邊框與說明文字顏色。 */.viewer-error {
   border-color: rgba(217, 94, 94, 0.28);
 }
 

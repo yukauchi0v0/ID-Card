@@ -76,6 +76,8 @@ export function updateHud() {
   arDom.panelOpenBtn.hidden = !(arState.interactive && page && PANEL_TYPES.has(page.contentType) && !arState.panelOpen);
   arDom.videoSoundBtn.hidden = !(arState.interactive && page && page.contentType === "video" && arState.activeVideo);
   arDom.videoSoundBtn.textContent = arState.videoMuted ? "開啟聲音" : "靜音";
+  // 「看完了？聯絡我」只在觀看端、且真的看到內容時出現；製作端預覽不需要。
+  arDom.viewerContactCta.hidden = !(arState.interactive && arState.host === "viewer");
 
   if (arState.panelOpen) {
     arDom.panelKicker.textContent = (page ? TYPE_LABELS[page.contentType] : "內容") +

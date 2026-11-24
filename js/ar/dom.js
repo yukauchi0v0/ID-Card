@@ -40,5 +40,6 @@ export const arDom = {
   // 浮動按鈕與 toast。
   videoSoundBtn: byId("videoSoundBtn"),
   panelOpenBtn: byId("panelOpenBtn"),
+  viewerContactCta: byId("viewerContactCta"),
   toast: byId("toast")
 };

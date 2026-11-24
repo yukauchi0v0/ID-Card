@@ -15,6 +15,37 @@ import { handleTargetFound, handleTargetLost } from "./content.js";
 import { updateHud } from "./hud.js";
 import { toast } from "../shared/toast.js";
 
+/**
+ * 顯示 AR 錯誤卡。
+ *
+ * 錯誤訊息放在 `<p>` 裡，由 `data-error-text` 控制要向後加一行；
+ * 沒有提供訊息時保留原始的「請確認…」清單（相機權限問題）。
+ *
+ * @param {string} [message] 自訂原因（例如辨識資料損壞）。
+ */
+function showCameraError(message) {
+  const card = arDom.errorPanel.querySelector(".error-card");
+  let note = arDom.errorPanel.querySelector(".error-note");
+  if (message) {
+    if (!note && card) {
+      note = document.createElement("p");
+      note.className = "error-note";
+      const button = card.querySelector("button");
+      if (button) card.insertBefore(note, button);
+      else card.appendChild(note);
+    }
+    if (note) {
+      note.textContent = message;
+      note.hidden = false;
+    }
+  } else if (note) {
+    note.textContent = "";
+    note.hidden = true;
+  }
+  arDom.errorPanel.hidden = false;
+  updateHud();
+}
+
 // 自訂 A-Frame component：讓內容平面永遠面向相機。
 // 只補償「父層 anchor 的旋轉」，不改變 anchor 的位置，所以卡片仍貼在
 // 卡蓋上，內容則像立牌一樣轉向使用者。
@@ -191,10 +222,29 @@ export function mountArScene(imageTargetSrc) {
     arState.interactive = false;
     arState.activeTarget = -1;
     arState.activeCard = null;
-    arDom.errorPanel.hidden = false;
-    updateHud();
+    showCameraError();
     if (typeof arState.onError === "function") arState.onError(event);
   });
+
+  // MindAR 解碼 `.mind` 失敗時（檔案損壞、上傳中斷、舊版格式），
+  // 追蹤 model 的 Promise 會直接 reject，不理它就會變成沒有 UI 的
+  // unhandled rejection。這裡用同樣的錯誤卡接手，並通知宿主。
+  sceneEl.addEventListener("loaded", () => {
+    if (arState.sceneEl !== sceneEl) return;
+    const system = sceneEl.systems && sceneEl.systems["mindar-image-system"];
+    const pending = system && system.controller && system.controller.model;
+    if (!pending || typeof pending.then !== "function") return;
+    pending.catch((err) => {
+      if (arState.sceneEl !== sceneEl) return;
+      console.error("[ID Card] 辨識資料載入失敗", err);
+      window.clearTimeout(arState.readyTimer);
+      arState.sceneReady = false;
+      arState.cameraError = true;
+      arState.interactive = false;
+      showCameraError("辨識資料讀取失敗，請返回後重新發布名片。");
+      if (typeof arState.onError === "function") arState.onError(err);
+    });
+  }, { once: true });
 
   arState.cards = cards;
   arState.sceneEl = sceneEl;

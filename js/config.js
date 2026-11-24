@@ -88,6 +88,7 @@ export const DEFAULT_SETTINGS = {
 
 // 名片資料的空白預設值。slug 故意留空，讓 `slugify` 在第一次儲存時
 // 依姓名或使用者輸入產生；不是每個人都會自己取網址代稱。
+// links 是名片上的社群聯絡方式（`[{ platform, account }]`），預設不勾選。
 export const DEFAULT_PROFILE = {
   name: "",
   title: "",
@@ -95,8 +96,24 @@ export const DEFAULT_PROFILE = {
   phone: "",
   email: "",
   website: "",
-  slug: ""
+  slug: "",
+  links: []
 };
+
+// 名片上的社群平台。
+// - `httpPrefix` 讓「只填帳號」也能組成合法網址（空字串代表必須貼完整網址）。
+// - `match` 只做文件用途，說明這個平台通常對應哪個網域。
+// 新增平台時只要加在這裡，製作端的勾選列與觀看端的按鈕都會自動出現。
+export const SOCIAL_PLATFORMS = [
+  { id: "line", label: "LINE", placeholder: "LINE ID 或加好友連結", httpPrefix: "https://line.me/R/ti/p/~" },
+  { id: "instagram", label: "Instagram", placeholder: "帳號或網址", match: ["instagram.com"], httpPrefix: "https://instagram.com/" },
+  { id: "threads", label: "Threads", placeholder: "帳號或網址", match: ["threads.net"], httpPrefix: "https://threads.net/@" },
+  { id: "facebook", label: "Facebook", placeholder: "帳號或網址", match: ["facebook.com"], httpPrefix: "https://facebook.com/" },
+  { id: "x", label: "X", placeholder: "帳號或網址", match: ["x.com", "twitter.com"], httpPrefix: "https://x.com/" },
+  { id: "linkedin", label: "LinkedIn", placeholder: "帳號或網址", match: ["linkedin.com"], httpPrefix: "https://linkedin.com/in/" },
+  { id: "github", label: "GitHub", placeholder: "帳號或網址", match: ["github.com"], httpPrefix: "https://github.com/" },
+  { id: "custom", label: "其他網站", placeholder: "完整網址 https://", httpPrefix: "" }
+];
 
 // 內容檔案大小上限（bytes）。這些是「單一檔案」限制，不是總容量；
 // 超過時在選檔階段就擋下，避免編譯到一半才失敗。

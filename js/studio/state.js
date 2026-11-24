@@ -20,6 +20,6 @@ export const studioState = {
   mindSignature: "",
   uid: 0,
 
-  profile: { ...DEFAULT_PROFILE },
+  profile: { ...DEFAULT_PROFILE, links: [] },
   settings: { ...DEFAULT_SETTINGS }
 };

@@ -27,6 +27,21 @@
       </ul>
       <button id="viewerArBtn" class="primary-btn" type="button" disabled>用 AR 看 <span class="arrow" aria-hidden="true">→</span></button>
       <p class="viewer-hint">需要相機權限；建議用手機開啟。看不到 AR 時，名片資訊仍可使用。</p>
+
+      <!--
+        聯絡區：看完 AR 回到名片頁後才顯示（body.contact-ready）。
+        第一次打開只看到基本資料與「用 AR 看」，避免還沒體驗就先推銷聯絡方式。
+      -->
+      <section id="viewerContact" class="viewer-contact-panel" aria-label="聯絡方式" hidden>
+        <h2 class="viewer-section-title">看完 AR 了？</h2>
+        <p class="viewer-section-note">儲存名片或直接從這裡聯絡我。</p>
+        <div id="viewerLinks" class="viewer-links"></div>
+        <div id="viewerActions" class="viewer-actions">
+          <button id="viewerSaveBtn" class="secondary-btn" type="button">儲存名片</button>
+          <button id="viewerShareBtn" class="secondary-btn" type="button">分享這張名片</button>
+        </div>
+        <p id="viewerShareTip" class="viewer-hint" hidden></p>
+      </section>
     </section>
 
     <!-- 讀不到 manifest / 缺 card 參數時的錯誤卡。 -->
