@@ -26,3 +26,23 @@ test("entry pages do not contain duplicate ids", async () => {
     assert.deepEqual([...new Set(duplicates)], [], file + " has duplicate ids");
   }
 });
+
+// 製作端與觀看端的 dom.js 會逐一 byId()，少一個元素就會在載入時 throw
+// 「Missing required element」。這裡直接比對靜態 HTML，能在開瀏覽器前
+// 抓到「忘了把元素加進 HTML」的錯誤。
+test("dom refs used by entry scripts exist in their HTML", async () => {
+  const cases = [
+    { html: "studio.html", scripts: ["js/studio/dom.js", "js/studio/main.js"] },
+    { html: "viewer.html", scripts: ["js/viewer/dom.js", "js/viewer/main.js"] }
+  ];
+  for (const { html: htmlFile, scripts } of cases) {
+    const html = await readFile(htmlFile, "utf8");
+    const ids = new Set([...html.matchAll(/\sid="([^"]+)"/g)].map((match) => match[1]));
+    for (const script of scripts) {
+      const source = await readFile(script, "utf8");
+      const refs = [...source.matchAll(/byId\("([^"]+)"\)/g)].map((match) => match[1]);
+      const missing = refs.filter((id) => !ids.has(id));
+      assert.deepEqual(missing, [], `${script} refers to missing ids in ${htmlFile}`);
+    }
+  }
+});

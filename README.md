@@ -5,8 +5,8 @@
 現在分成三個入口：
 
 - `/` — 首頁，說明觀看名片與製作名片兩種角色；製作從 `/studio.html` 進入
-- `/studio.html` — 製作端：上傳卡蓋圖案、編輯內容、編譯、下載卡片包、產生 QR
-- `/viewer.html?card=cards/<slug>/card.json` — 觀看端：先看名片資訊，再按「用 AR 看」掃卡面
+- `/studio.html` — 製作端：上傳卡蓋圖案、編輯內容、編譯、存到雲端、發布並產生 QR
+- `/viewer.html?card=<8 碼代碼>` — 觀看端：先看名片資訊，再按「用 AR 看」掃卡面
 
 **Live Demo：** https://yukauchi0v0.github.io/ID-Card/
 
@@ -15,28 +15,39 @@
 - A-Frame 1.5.0
 - MindAR 1.2.2
 - 原生 ES Modules（native ESM），不需要 build step
-- 純前端；相機、編譯、Storage 都在瀏覽器本機完成
-- 靜態卡片包：`card.json` + `card.mind` + `media/`，不需要後端
-- `fflate`（zip）與 `qrcode-generator`（QR）已放在 `vendor/`，不依賴 CDN 的執行期載入
+- 相機、編譯、本機暫存都在瀏覽器完成；雲端存檔與短網址使用 Supabase（見 `supabase/README.md`）
+- 靜態卡片包：`card.json` + `card.mind` + `media/`，可作為不接後端的備援
+- `fflate`（zip）、`qrcode-generator`（QR）與 `supabase-js` 已放在 `vendor/`，不依賴 CDN 的執行期載入
 
 ## 使用方式
 
 ### 製作名片
 
 1. 開啟 `/studio.html`。
-2. 在「名片資訊」填入姓名、職稱、公司、電話、Email、網站；空白欄位不會顯示在觀看頁。
-3. 上傳 1–8 個卡蓋圖案，順序即為卡蓋位置 1、2、3…
-4. 為每個圖案選擇內容：平面文字、照片、上傳影片、影片連結、互動網頁或 PDF。
-5. 在「AR 顯示位置」調整位置、間距、偏移、大小與平放／立起。
-6. 按「編譯並進入 AR」，允許相機權限，確認內容顯示正常後返回。
-7. 按「發布名片」：
-   - 下載 `<slug>-card.zip`。
-   - 下載 QR，或複製觀看網址。
-   - 把 zip 解壓後的 `cards/<slug>/` 放到網站根目錄。
+2. 「雲端存檔」填入 email，按「寄出登入連結」，到信箱點開連結回到頁面即登入。
+   - 沒登入也能完整試用與編譯，只是不能存到雲端或取得公開網址。
+3. 在「名片資訊」填入姓名、職稱、公司、電話、Email、網站；空白欄位不會顯示在觀看頁。
+4. 上傳 1–8 個卡蓋圖案，順序即為卡蓋位置 1、2、3…
+5. 為每個圖案選擇內容：平面文字、照片、上傳影片、影片連結、互動網頁或 PDF。
+6. 在「AR 顯示位置」調整位置、間距、偏移、大小與平放／立起。
+7. 按「編譯並進入 AR」，允許相機權限，確認內容顯示正常後返回。
+8. 按「存到雲端」保存草稿（換手機、隔天回來都能接續編輯）。
+9. 按「發布」：上傳最新一版並取得名片代碼、觀看網址與 QR。
 
 ### 發布與 QR
 
-卡片包解壓後會長這樣：
+發布後觀看網址固定為：
+
+```text
+https://yukauchi0v0.github.io/ID-Card/viewer.html?card=<8 碼名片代碼>
+```
+
+- 代碼由系統產生，只含小寫英數字（避開 0/o/1/l）。
+- 改名、改內容、重新發布都不會改變代碼，已印出的 QR 可繼續使用。
+- QR 指向觀看網址，不指向首頁。掃到 QR 後先看到名片資訊，按「用 AR 看」才會啟動相機。
+- 重新發布只換掉觀看端讀到的最新版本，舊版本仍留在 `card_versions`。
+
+沒有登入或不想用雲端時，也可以用「下載卡片包（備援）」得到：
 
 ```text
 cards/<slug>/
@@ -46,21 +57,17 @@ cards/<slug>/
   media/page-3.mp4
 ```
 
-把整個 `cards/<slug>/` 上傳到靜態網站根目錄，觀看網址就是：
-
-```text
-https://your-site.example/viewer.html?card=cards/<slug>/card.json
-```
-
-QR 指向這個觀看網址，不指向首頁。掃到 QR 後先看到名片資訊，按「用 AR 看」才會啟動相機。
+把整個 `cards/<slug>/` 放到靜態網站根目錄後，用舊式路徑
+`viewer.html?card=cards/<slug>/card.json` 也能觀看；觀看端兩種網址都支援。
 
 ### 觀看名片
 
 1. 掃名片上的 QR，或開啟觀看網址。
-2. 先讀取 `card.json`，顯示姓名、職稱、公司、電話、Email、網站。
+2. 觀看端向 Supabase 讀取最新已發布的名片，顯示姓名、職稱、公司、電話、Email、網站。
 3. 按「用 AR 看」，允許相機權限。
 4. 把鏡頭對準卡蓋圖案；鎖定後可左右滑動換頁，或滑動卡蓋切換圖案。
 5. 按「返回名片」停止相機並回到名片頁。
+
 
 ## 專案結構
 
@@ -82,19 +89,24 @@ styles/
   overlays.css              編譯 overlay、錯誤面板、toast
   responsive.css            手機／窄螢幕覆寫，最後載入
 js/
-  config.js                 常數、內容類型、預設名片、追蹤預設
+  config.js                 常數、內容類型、預設名片、追蹤預設、上傳上限
+  config.public.js          Supabase URL 與 publishable key（可公開）
   events.js                 小型 event bus
   mindar-bundle-ref.js      保存 A-Frame bundle 的 MINDAR.IMAGE.Compiler
   shared/
     toast.js                AR／studio 共用的 toast
+    supabase.js             Supabase client（未設定時回傳 null）
   studio/
     main.js                 注入 AR shell，載入 studio app
     app.js                  製作流程協調
     state.js                製作端 state
     dom.js                  製作端 DOM refs
+    auth.js                 magic link 登入、session、登出
+    cloud.js                雲端草稿存檔／載入、發布、上傳上限檢查
+    cloud-ui.js             帳號面板、存到雲端、發布流程
     profile.js              名片資訊表單
     manifest.js             產生 card.json
-    card-package.js         打包 zip
+    card-package.js         打包 zip（備援發布方式）
     share.js                觀看網址、QR、複製與下載
     session.js              IndexedDB save/restore/clear
     ui/
@@ -106,7 +118,7 @@ js/
     main.js                 注入 AR shell，載入 viewer app
     app.js                  讀 manifest、名片頁、啟動 AR
     dom.js                  觀看端 DOM refs
-    manifest.js             驗證並解析 card.json
+    manifest.js             短代碼／舊式路徑解析、manifest 驗證
   ar/
     state.js                AR singleton state
     dom.js                  AR shell DOM refs
@@ -125,13 +137,22 @@ js/
     files.js                圖片載入、壓縮、檔案限制
     format.js               pad2、clamp、escapeHtml、nextPaint
     slug.js                 ASCII slug；中文名稱用穩定 hash
+    signature.js            卡蓋集合簽章（跨帳號沿用草稿）
+    extension.js            由檔名／MIME 推斷副檔名
     canvas.js               Canvas 文字換行
+supabase/
+  README.md                 Supabase 設定步驟
+  migrations/               資料表、RLS、Storage 政策
 vendor/
   fflate.js                 zip 打包（MIT）
   qrcode.min.js             QR 產生（MIT）
+  supabase.js               supabase-js 2.x UMD（MIT）
 tests/
   manifest.test.js
   viewer-manifest.test.js
+  viewer-source.test.js
+  cloud-row.test.js
+  auth.test.js
   structure.test.js
 ```
 
@@ -142,6 +163,7 @@ tests/
 - 兩端都只透過 `js/ar/runtime.js` 的 `startAr`／`stopAr` 操作 AR
 - `js/ar/*` 只依賴 `ar/state.js`、`ar/dom.js`、`media/`、`utils/`，不依賴 studio
 - `js/studio/session.js` 只屬於製作端；viewer 不寫 IndexedDB
+- `js/studio/cloud*.js` 只在已設定 Supabase 且有登入 session 時才會寫入雲端
 - `js/viewer/manifest.js` 只驗證資料，不編譯
 
 ## 本機預覽
@@ -156,9 +178,13 @@ python -m http.server 8767
 
 - http://127.0.0.1:8767/
 - http://127.0.0.1:8767/studio.html
-- http://127.0.0.1:8767/viewer.html?card=cards/&lt;slug&gt;/card.json（先放好對應卡片包）
+- http://127.0.0.1:8767/viewer.html?card=&lt;8 碼代碼&gt;（該名片需已發布）
+- http://127.0.0.1:8767/viewer.html?card=cards/&lt;slug&gt;/card.json（舊式：先放好對應卡片包）
 
 這是 native ESM，請不要用 `file://` 直接開。
+
+本機測試登入時，記得在 Supabase 的 Redirect URLs 加上
+`http://localhost:8767/studio.html`，否則 magic link 會導向正式網址。
 
 ## 測試
 
@@ -191,9 +217,9 @@ node --check js/ar/runtime.js
 
 ## 限制
 
-- 第一版沒有後端、帳號、權限、到期日、統計或跨網域托管。
-- 靜態卡片包是公開檔案；任何拿到網址的人都能讀取 `card.json`、`card.mind` 與 `media/`。不要放敏感資料。
-- 觀看端不寫 IndexedDB；重新整理會重新讀 manifest。
+- 沒有到期日、造訪統計或跨網域托管。
+- 已發布的名片是公開的：任何拿到 8 碼網址的人都能讀取該名片的最新版本與公開內容檔。草稿只有本人能讀。
+- 觀看端不寫 IndexedDB；重新整理會重新向雲端讀取。
 - 第二版才會加入 3D 模型、GIF 動畫與音訊。
 - iOS 請使用 Safari 16.4+，並允許相機權限。
 - 多數 Android 內建瀏覽器不支援相機；請用 Chrome 或 Safari。
@@ -212,3 +238,4 @@ node --check js/ar/runtime.js
 - `v0.2.0`：平面內容、卡蓋多 target、內容面板、位置控制、本機儲存
 - 模組化重構：把單檔拆成 native ESM 模組與分層 CSS，行為不變
 - 三入口版本：`/` 首頁、`/studio.html` 製作端、`/viewer.html` 觀看端；名片資訊、靜態卡片包、QR 分享
+- 雲端存檔：email magic link 登入、Supabase 草稿、`?card=<8 碼代碼>` 短網址、改名不換網址、重新發布不動 QR
