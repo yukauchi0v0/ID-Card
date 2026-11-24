@@ -217,7 +217,7 @@
     1. A-Frame 先建立 AFRAME。
     2. MindAR core ESM 與 A-Frame bundle 提供 MINDAR.IMAGE.Compiler。
     3. mindar-bundle-ref 在 core ESM 之後保存 bundle 的 WebGL compiler。
-    4. fflate / qrcode 是發布面板用的第三方工具。
+    4. fflate / qrcode / supabase 是發布與雲端存檔用的第三方工具。
     5. 最後才載入 type=module 的製作端入口。
   -->
   <!-- MindAR 1.2.2：core 是 ESM；A-Frame 綁定包也內建 core。 -->
@@ -228,6 +228,8 @@
   <script src="js/mindar-bundle-ref.js"></script>
   <script src="vendor/fflate.js"></script>
   <script src="vendor/qrcode.min.js"></script>
+  <!-- supabase-js：雲端存檔、登入與發布；未載入時製作端仍可離線使用。 -->
+  <script src="vendor/supabase.js"></script>
 
   <script type="module" src="js/studio/main.js"></script>
 </body>

@@ -17,3 +17,13 @@ It exposes `window.fflate` and is loaded before `js/studio/main.js`.
 
 Used only by the studio share panel to render and download the viewer QR code.
 It exposes `window.qrcode` and is loaded before `js/studio/main.js`.
+
+## supabase-js 2.119.2
+
+- Source: https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js
+- Project: https://github.com/supabase/supabase-js
+- License: MIT
+
+Used by the studio page for cloud sign-in, saving the draft and publishing.
+It exposes `window.supabase.createClient` and is loaded before `js/studio/main.js`.
+
