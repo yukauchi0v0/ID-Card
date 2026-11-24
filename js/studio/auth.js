@@ -77,6 +77,72 @@ export async function signInWithEmail(email, options = {}) {
   if (error) throw new Error("寄出登入連結失敗：" + friendlyAuthError(error));
 }
 
+/** 把 Supabase 的英文訊息整理成能直接顯示的中文。 */
+export function describeAuthError(kind, error) {
+  const message = String((error && error.message) || "");
+  const code = String((error && error.code) || "");
+  if (kind === "signin") {
+    if (/invalid login credentials/i.test(message) || code === "invalid_credentials") {
+      return "Email 或密碼不正確。還沒註冊過的話，請先按「還沒有帳號？註冊」。";
+    }
+    if (/email not confirmed/i.test(message)) {
+      return "這個帳號還需要確認 email。請到信箱點開確認信，或用「忘記密碼／改用登入連結」。";
+    }
+  }
+  if (kind === "signup") {
+    if (/already registered|user already exists/i.test(message) || code === "user_already_exists") {
+      return "這個 email 已經註冊過，請直接按「登入」。";
+    }
+    if (/password should be at least/i.test(message)) {
+      return "密碼太短，至少要 8 碼。";
+    }
+    if (/rate limit/i.test(message)) {
+      return "註冊太頻繁，請稍後再試。";
+    }
+  }
+  return message || "未知錯誤";
+}
+
+/**
+ * 以 email + 密碼登入。
+ *
+ * 這是主要登入方式：不寄信，所以不受 Supabase 內建信箱的速率限制。
+ *
+ * @param {string} email
+ * @param {string} password
+ */
+export async function signInWithPassword(email, password) {
+  const client = getClient();
+  if (!client) throw new Error(NO_CLOUD);
+  const { error } = await client.auth.signInWithPassword({
+    email: email.trim(),
+    password
+  });
+  if (error) throw new Error(describeAuthError("signin", error));
+}
+
+/**
+ * 建立新帳號，成功後即為登入狀態。
+ *
+ * 專案若關閉了 email 確認，這裡會直接拿到 session；若仍要求確認，
+ * Supabase 會回傳沒有 session 的 user，呼叫端要提示使用者去收信。
+ *
+ * @param {string} email
+ * @param {string} password
+ * @returns {Promise<boolean>} 是否直接取得登入 session。
+ */
+export async function signUpWithPassword(email, password) {
+  const client = getClient();
+  if (!client) throw new Error(NO_CLOUD);
+  const { data, error } = await client.auth.signUp({
+    email: email.trim(),
+    password,
+    options: { emailRedirectTo: authRedirectUrl() }
+  });
+  if (error) throw new Error(describeAuthError("signup", error));
+  return Boolean(data && data.session);
+}
+
 /**
  * 登出目前帳號。
  */

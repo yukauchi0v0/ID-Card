@@ -47,13 +47,23 @@
         </div>
 
         <div id="accountSignedOut" class="account-block">
-          <label class="field">
-            <span>Email</span>
-            <input id="signInEmail" type="email" autocomplete="email" maxlength="120" placeholder="you@example.com" />
-          </label>
-          <button id="signInBtn" class="secondary-btn" type="button">寄出登入連結</button>
+          <div class="account-grid">
+            <label class="field">
+              <span>Email</span>
+              <input id="signInEmail" type="email" autocomplete="email" maxlength="120" placeholder="you@example.com" />
+            </label>
+            <label class="field">
+              <span>密碼（至少 8 碼）</span>
+              <input id="signInPassword" type="password" autocomplete="current-password" minlength="8" maxlength="72" placeholder="••••••••" />
+            </label>
+          </div>
+          <div class="account-actions">
+            <button id="signInBtn" class="secondary-btn" type="button">登入</button>
+            <button id="signUpBtn" class="link-btn" type="button">還沒有帳號？註冊</button>
+            <button id="magicLinkBtn" class="link-btn" type="button">忘記密碼／改用登入連結</button>
+          </div>
           <p id="signInStatus" class="control-help" role="status" aria-live="polite">
-            不需要密碼：按下後到信箱點開連結，就會回到這個頁面並自動登入。
+            第一次使用請先註冊；之後只要輸入 email 與密碼，不需要再收信。
           </p>
         </div>
 

@@ -9,7 +9,7 @@
 import { studioState as state } from "./state.js";
 import { studioDom as dom } from "./dom.js";
 import { arDom } from "../ar/dom.js";
-import { getSession, onAuthChange, signInWithEmail, signOut } from "./auth.js";
+import { getSession, onAuthChange, signInWithEmail, signInWithPassword, signOut, signUpWithPassword } from "./auth.js";
 import { getClient } from "../shared/supabase.js";
 import {
   createDraftFromTargets,
@@ -152,6 +152,7 @@ async function onSignedIn(session) {
   if (draft) {
     await restoreDraft(draft);
     toast("已登入：" + (session.user.email || "你的帳號"), 3200);
+    dom.signInStatus.textContent = "已登入。";
     return;
   }
   if (state.targets.length) {
@@ -173,6 +174,7 @@ function onSignedOut() {
   userId = null;
   cardCode = "";
   dom.signInStatus.textContent = "已登出。要存檔或發布時，再登入即可。";
+  dom.signInPassword.value = "";
   dom.publishedInfo.textContent = publishedText();
   renderAccount("");
   toast("已登出。", 3000);
@@ -253,6 +255,53 @@ async function handlePublish() {
 }
 
 /**
+ * 處理 email + 密碼的登入或註冊。
+ *
+ * 使用密碼是為了避開 Supabase 內建信箱的速率限制；註冊成功（且專案
+ * 已關閉 email 確認）時 SDK 會直接回傳 session，onAuthChange 會接手
+ * 建立名片與載入草稿，這裡只負責按鈕狀態與訊息。
+ *
+ * @param {"signin"|"signup"} mode
+ */
+async function submitPassword(mode) {
+  const email = dom.signInEmail.value.trim();
+  const password = dom.signInPassword.value;
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    dom.signInStatus.textContent = "請先填入完整的 email。";
+    dom.signInEmail.focus();
+    return;
+  }
+  if (password.length < 8) {
+    dom.signInStatus.textContent = "密碼至少要 8 碼。";
+    dom.signInPassword.focus();
+    return;
+  }
+  const button = mode === "signup" ? dom.signUpBtn : dom.signInBtn;
+  const label = button.textContent;
+  dom.signInBtn.disabled = true;
+  dom.signUpBtn.disabled = true;
+  button.textContent = mode === "signup" ? "註冊中…" : "登入中…";
+  try {
+    if (mode === "signup") {
+      const signedIn = await signUpWithPassword(email, password);
+      dom.signInStatus.textContent = signedIn
+        ? "帳號已建立，正在載入你的名片…"
+        : "帳號已建立，請到信箱點開確認信後再登入。";
+    } else {
+      await signInWithPassword(email, password);
+      dom.signInStatus.textContent = "登入成功，正在載入你的名片…";
+    }
+    dom.signInPassword.value = "";
+  } catch (err) {
+    dom.signInStatus.textContent = err.message || "操作失敗，請稍後再試。";
+  } finally {
+    dom.signInBtn.disabled = false;
+    dom.signUpBtn.disabled = false;
+    button.textContent = label;
+  }
+}
+
+/**
  * 處理 magic link 回來時網址上的參數。
  *
  * Supabase 的連結可能長成：
@@ -321,28 +370,32 @@ export async function initCloudUi() {
     bound = true;
     initShare();
 
-    dom.signInBtn.addEventListener("click", async () => {
+    dom.signInBtn.addEventListener("click", () => submitPassword("signin"));
+    dom.signUpBtn.addEventListener("click", () => submitPassword("signup"));
+    dom.signInPassword.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") dom.signInBtn.click();
+    });
+
+    dom.magicLinkBtn.addEventListener("click", async () => {
       const email = dom.signInEmail.value.trim();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         dom.signInEmail.focus();
         dom.signInStatus.textContent = "請先填入完整的 email。";
-        toast("請先填入完整的 email。", 4200);
         return;
       }
-      dom.signInBtn.disabled = true;
+      dom.magicLinkBtn.disabled = true;
       try {
         await signInWithEmail(email);
         dom.signInStatus.textContent = "登入連結已寄出，請到信箱點開（也可能在垃圾信件匣）。";
-        toast("登入連結已寄出。", 4200);
       } catch (err) {
         dom.signInStatus.textContent = err.message || "寄出失敗，請稍後再試。";
       } finally {
-        dom.signInBtn.disabled = false;
+        dom.magicLinkBtn.disabled = false;
       }
     });
 
     dom.signInEmail.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") dom.signInBtn.click();
+      if (event.key === "Enter") dom.signInPassword.focus();
     });
 
     dom.saveDisplayName.addEventListener("click", async () => {
