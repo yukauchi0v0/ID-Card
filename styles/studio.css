@@ -3,6 +3,30 @@
 - 只由 studio.html 載入；viewer/landing 不應依賴這裡的 class。
  */
 
+/* 雲端帳號區塊：未登入時一個 email 欄位 + 一個按鈕；登入後換成
+   顯示 ID、名片代碼與登出。兩塊由 cloud-ui.js 切換 hidden。 */
+.account-block { display: grid; gap: 10px; }
+.account-email { margin: 0; color: var(--muted); font-size: 12.5px; }
+.account-email strong { color: var(--ink); font-weight: 750; }
+.account-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 14px;
+  align-items: end;
+}
+.account-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.code-text {
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 12px;
+  background: var(--surface-soft);
+  color: var(--ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 15px;
+  letter-spacing: 0.14em;
+}
+
 /* 名片資料：桌機兩欄，手機單欄；slug 獨占一列。 */
 .profile-grid {
   display: grid;
@@ -11,7 +35,7 @@
 }
 .profile-grid .field:last-child { grid-column: 1 / -1; }
 
-/* action bar 右側的「進入 AR / 下載卡片包」按鈕群。 */
+/* action bar 右側的「存到雲端 / 進入 AR / 發布」按鈕群。 */
 .action-actions {
   display: flex;
   flex: none;
@@ -76,6 +100,7 @@
 /* 手機：所有控制項單欄，按鈕全寬，QR 縮小。 */
 @media (max-width: 640px) {
   .profile-grid { grid-template-columns: 1fr; }
+  .account-grid { grid-template-columns: 1fr; }
   .action-actions { flex-direction: column; width: 100%; }
   .action-actions .primary-btn,
   .action-actions .secondary-btn { width: 100%; }

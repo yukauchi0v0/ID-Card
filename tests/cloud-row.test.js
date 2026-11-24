@@ -11,9 +11,9 @@ import {
   coverPath,
   mediaPath,
   publishedPath,
-  checkUpload,
-  extensionFor
+  checkUpload
 } from "../js/studio/cloud.js";
+import { extensionFor } from "../js/utils/extension.js";
 import { UPLOAD_LIMITS } from "../js/config.js";
 
 test("資料列只保留可序列化的 target 欄位", () => {

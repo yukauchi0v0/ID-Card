@@ -10,8 +10,8 @@
 </head>
 <body>
   <!--
-    製作端設定頁。三個 panel 依序是：
-    01 名片資料（viewer 的普通名片）→ 02 卡蓋圖與內容 → 03 AR 顯示位置。
+    製作端設定頁。panel 依序是：
+    00 雲端帳號 → 01 名片資料（viewer 的普通名片）→ 02 卡蓋圖與內容 → 03 AR 顯示位置。
     AR 啟動後這個 main 會隱藏，由 js/ar/shell.js 注入的 HUD 接手。
   -->
   <main id="setup">
@@ -37,6 +37,46 @@
           <img src="images/card.webp" alt="" class="hero-top-img" aria-hidden="true">
         </picture>
       </header>
+      <!-- 00：雲端帳號。未登入時仍可完整試用；存檔與發布才需要登入。 -->
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>00 · 雲端存檔</h2>
+            <p>登入後，名片會存在雲端；換手機或隔天再回來都能接著編輯，也能取得給別人掃的短網址。</p>
+          </div>
+        </div>
+
+        <div id="accountSignedOut" class="account-block">
+          <label class="field">
+            <span>Email</span>
+            <input id="signInEmail" type="email" autocomplete="email" maxlength="120" placeholder="you@example.com" />
+          </label>
+          <button id="signInBtn" class="secondary-btn" type="button">寄出登入連結</button>
+          <p id="signInStatus" class="control-help" role="status" aria-live="polite">
+            不需要密碼：按下後到信箱點開連結，就會回到這個頁面並自動登入。
+          </p>
+        </div>
+
+        <div id="accountSignedIn" class="account-block" hidden>
+          <p class="account-email">已登入：<strong id="accountEmail"></strong></p>
+          <div class="account-grid">
+            <label class="field">
+              <span>顯示 ID（可中文，改名不會換網址）</span>
+              <input id="displayName" maxlength="40" placeholder="例如：林一" />
+            </label>
+            <div class="field">
+              <span>名片代碼</span>
+              <p id="cardCodeText" class="code-text">------</p>
+            </div>
+          </div>
+          <div class="account-actions">
+            <button id="saveDisplayName" class="secondary-btn" type="button">儲存顯示 ID</button>
+            <button id="signOutBtn" class="link-btn" type="button">登出</button>
+          </div>
+          <p id="publishedInfo" class="control-help">尚未發布。</p>
+        </div>
+      </section>
+
       <!-- 01：名片資料。空白欄位在 viewer 會整列隱藏。 -->
       <div class="setup-body">
       <section class="panel">
@@ -162,10 +202,11 @@
       <div class="action-bar">
         <div class="action-note">第一次編譯在手機上可能需要數秒；全部在本機完成，不會上傳你的卡面。</div>
         <div class="action-actions">
+          <button id="saveBtn" class="secondary-btn" type="button">存到雲端</button>
           <button id="enterBtn" class="primary-btn" type="button" disabled>
             <span>編譯並進入 AR</span><span class="arrow">→</span>
           </button>
-          <button id="publishBtn" class="secondary-btn" type="button">下載卡片包</button>
+          <button id="publishBtn" class="secondary-btn" type="button">發布</button>
         </div>
       </div>
       </div>
@@ -186,7 +227,7 @@
         </div>
         <button id="shareClose" class="panel-close" type="button">關閉</button>
       </div>
-      <p class="share-note">先下載卡片包，解壓後把 <code>cards/&lt;slug&gt;/</code> 放到網站根目錄，再把下面的網址給對方。</p>
+      <p class="share-note">發布後，對方用手機掃下面的 QR 或打開網址，就能看到名片；內容隨時可以重新發布更新。若需要離線備援，也可以下載卡片包自行放置。</p>
       <label class="field">
         <span>觀看網址</span>
         <input id="shareUrl" type="url" />
@@ -194,7 +235,7 @@
       <div id="shareQr" class="share-qr" aria-label="名片 QR code"></div>
       <div class="share-actions">
         <button id="shareCopy" class="secondary-btn" type="button">複製連結</button>
-        <button id="shareDownload" class="primary-btn" type="button">下載卡片包</button>
+        <button id="shareDownload" class="secondary-btn" type="button">下載卡片包（備援）</button>
         <button id="shareQrDownload" class="secondary-btn" type="button">下載 QR</button>
       </div>
     </div>

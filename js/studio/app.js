@@ -14,7 +14,7 @@ import { setCompileProgress, showCompileOverlay } from "./ui/compile-overlay.js"
 import { initTargets, renderCards } from "./ui/targets.js";
 import { initSettings, updateSettingsUi } from "./ui/settings.js";
 import { initProfile } from "./profile.js";
-import { initShare } from "./share.js";
+import { initCloudUi } from "./cloud-ui.js";
 import { initArUi, startAr, stopAr } from "../ar/runtime.js";
 import { arDom } from "../ar/dom.js";
 import {
@@ -191,13 +191,15 @@ function exitAr() {
 }
 
 /**
- * 初始化製作端：先建立各區塊的事件，再載入本機暫存。
- * 順序很重要：initProfile 必須在 restoreSession 之前，restore 才能把
- * profile 寫回表單；renderCards 也要在 restore 前先建好空清單。
+ * 初始化製作端：先建立各區塊的事件，再載入雲端草稿或本機暫存。
+ * 順序很重要：initProfile 必須在還原之前，還原才能把 profile 寫回表單；
+ * renderCards 也要在還原前先建好空清單。
+ *
+ * 雲端優先：已登入且有雲端草稿時直接用雲端版本（換裝置也能接續）；
+ * 未登入或雲端沒有資料時才讀本機 IndexedDB。
  */
 export function initApp() {
   initArUi();
-  initShare();
   initSettings();
   initTargets();
   initSessionControls();
@@ -205,7 +207,6 @@ export function initApp() {
   updateSettingsUi();
   renderCards();
   initProfile();
-  restoreSession();
 
   arDom.backBtn.addEventListener("click", exitAr);
   arDom.errorBackBtn.addEventListener("click", exitAr);
@@ -223,6 +224,17 @@ export function initApp() {
     if (state.mindUrl) URL.revokeObjectURL(state.mindUrl);
     if (document.body.classList.contains("ar-active")) stopAr();
   });
+
+  // 雲端初始化是非同步的：先讓畫面可用，登入狀態確定後才決定要還原
+  // 雲端草稿還是本機暫存。
+  initCloudUi()
+    .then((signedIn) => {
+      if (!signedIn) restoreSession();
+    })
+    .catch((err) => {
+      console.warn("[ID Card] 雲端初始化失敗", err);
+      restoreSession();
+    });
 
   if (!window.AFRAME) toast("A-Frame 載入失敗，請檢查網路後重新整理。", 6000);
   else if (!getCompilerClass()) toast("MindAR 載入失敗，請檢查網路後重新整理。", 6000);

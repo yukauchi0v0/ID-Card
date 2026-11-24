@@ -13,6 +13,7 @@ import { getClient } from "../shared/supabase.js";
 import { UPLOAD_LIMITS } from "../config.js";
 import { markerAspect } from "./manifest.js";
 import { signatureOf } from "../utils/signature.js";
+import { extensionFor } from "../utils/extension.js";
 
 const BUCKET = "card-assets";
 const NO_CLOUD = "雲端服務未載入，請重新整理頁面。";
@@ -30,21 +31,8 @@ function fail(prefix, error) {
   return new Error(prefix + "：" + message);
 }
 
-/** 從檔名或 MIME 推斷副檔名；推不出來時回 "bin"。 */
-export function extensionFor(name, mime) {
-  const match = /\.([a-z0-9]{2,5})$/i.exec(String(name || ""));
-  if (match) return match[1].toLowerCase();
-  const byMime = {
-    "image/png": "png",
-    "image/jpeg": "jpg",
-    "image/webp": "webp",
-    "image/gif": "gif",
-    "video/mp4": "mp4",
-    "video/webm": "webm",
-    "application/pdf": "pdf"
-  };
-  return byMime[mime] || "bin";
-}
+/** 從檔名或 MIME 推斷副檔名；實作在 utils，這裡轉出方便其他模組使用。 */
+export { extensionFor };
 
 /**
  * 卡的草稿檔案路徑。

@@ -1,9 +1,9 @@
 /**
  * 發布與分享：觀看網址、QR 與卡片包下載。
  *
- * 這裡只產生「要給對方打開的連結」；實際的卡片包由 card-package.js
- * 匯出，兩者都要求目前已編譯且 signature 與卡蓋圖一致，避免分享到
- * 舊內容。
+ * 觀看網址來自雲端名片代碼（`viewer.html?card=<code>`）；未登入時沒有
+ * 代碼，按下發布會提示先登入。卡片包匯出仍在 card-package.js，當作
+ * 離線備援，兩者都要求目前已編譯且 signature 與卡蓋圖一致。
  */
 import { studioState } from "./state.js";
 import { studioDom } from "./dom.js";
@@ -11,20 +11,19 @@ import { slugify } from "../utils/slug.js";
 import { exportCardPackage } from "./card-package.js";
 import { targetSignature } from "./session.js";
 import { toast } from "../shared/toast.js";
+import { currentCardCode } from "./cloud-ui.js";
 
 /**
  * 產生 viewer 的完整網址。
  *
- * 保留 `cards/<slug>/card.json` 的斜線（只編碼 slug），讓網址在瀏覽器
- * 網址列與 QR 中都可讀；`URLSearchParams` 會自行處理必要的編碼。
- *
- * @returns {string} 例如 `https://example.com/viewer.html?card=cards/lin/card.json`
+ * @returns {string} 例如 `https://example.com/viewer.html?card=k7m2p9qd`；
+ *   尚未登入或沒有名片代碼時回空字串。
  */
 export function viewerUrl() {
-  const slug = slugify(studioState.profile.slug || studioState.profile.name);
+  const code = currentCardCode();
+  if (!code) return "";
   const url = new URL("viewer.html", window.location.href);
-  const cardPath = "cards/" + slug + "/card.json";
-  url.search = "?card=" + encodeURIComponent(cardPath).replace(/%2F/g, "/");
+  url.search = "?card=" + encodeURIComponent(code);
   return url.href;
 }
 
@@ -60,8 +59,8 @@ function closeShare() {
 
 /**
  * 開啟發布面板。
- * 先檢查 targets 與已編譯的 signature；不讓使用者分享一個沒有內容或
- * 內容與卡蓋圖不一致的網址。
+ * 先檢查 targets、已編譯的 signature 與名片代碼；不讓使用者分享一個
+ * 沒有內容、內容與卡蓋圖不一致，或根本還不存在的網址。
  */
 export function openShare() {
   if (!studioState.targets.length) {
@@ -72,7 +71,12 @@ export function openShare() {
     toast("請先編譯名片，再發布。", 4200);
     return;
   }
-  studioDom.shareUrl.value = viewerUrl();
+  const url = viewerUrl();
+  if (!url) {
+    toast("請先登入並發布，才能取得公開網址。", 4600);
+    return;
+  }
+  studioDom.shareUrl.value = url;
   studioDom.shareOverlay.hidden = false;
   renderQr();
   studioDom.shareUrl.focus();
@@ -80,13 +84,10 @@ export function openShare() {
 }
 
 /**
- * 綁定發布面板的所有事件；由 initApp() 呼叫一次。
- *
- * 注意：`#publishBtn` 只在這裡綁定，其他地方不要重複 addEventListener，
- * 否則點一次會下載兩份卡片包。
+ * 綁定發布面板的事件；由 cloud-ui.js 在發布成功後呼叫一次。
+ * `#publishBtn` 由 cloud-ui.js 綁定，這裡不要再綁，否則會發布兩次。
  */
 export function initShare() {
-  studioDom.publishBtn.addEventListener("click", openShare);
   studioDom.shareUrl.addEventListener("input", renderQr);
   studioDom.shareClose.addEventListener("click", closeShare);
   studioDom.shareOverlay.addEventListener("click", (event) => {

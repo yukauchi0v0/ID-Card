@@ -52,6 +52,18 @@ export const studioDom = {
   scaleValue: byId("scaleValue"),
   stabilitySelect: byId("stabilitySelect"),
 
+  // 雲端帳號：登入表單、登入後的顯示名稱與名片代碼。
+  accountEmail: byId("accountEmail"),
+  displayName: byId("displayName"),
+  saveDisplayName: byId("saveDisplayName"),
+  cardCodeText: byId("cardCodeText"),
+  signOutBtn: byId("signOutBtn"),
+  signInEmail: byId("signInEmail"),
+  signInBtn: byId("signInBtn"),
+  signInStatus: byId("signInStatus"),
+  saveBtn: byId("saveBtn"),
+  publishedInfo: byId("publishedInfo"),
+
   // 本機紀錄與發布/QR 面板。
   clearSavedBtn: byId("clearSavedBtn"),
   shareOverlay: byId("shareOverlay"),

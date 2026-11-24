@@ -18,6 +18,7 @@ import {
   prepareImageForCompiler
 } from "../../utils/files.js";
 import { toast } from "../../shared/toast.js";
+import { checkUpload } from "../cloud.js";
 import { updateEnterButton } from "./enter-button.js";
 
 /**
@@ -216,6 +217,14 @@ function chooseContentFile(target, kind, file) {
   if (!isAllowedContentFile(kind, file)) { toast("這個檔案類型不符合。"); return; }
   const max = contentFileLimit(kind);
   if (max && file.size > max) { toast("檔案太大，建議小於 " + byteLabel(max) + "。", 5200); return; }
+  // 雲端上傳上限比本機編譯上限更嚴；先在這裡擋，免得對方上傳、
+  // 編譯完才在存檔時失敗。
+  const cloudKind = kind === "image" ? "photo" : kind;
+  if (cloudKind === "photo" || cloudKind === "video" || cloudKind === "pdf") {
+    const used = state.targets.reduce((sum, item) => sum + (item.contentSize || 0), 0);
+    const check = checkUpload(cloudKind, file, used);
+    if (!check.ok) { toast(check.message, 6000); return; }
+  }
   clearTargetContentFile(target);
   target.contentFile = file;
   target.contentObjectUrl = URL.createObjectURL(file);
