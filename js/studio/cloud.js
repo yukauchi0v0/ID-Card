@@ -230,6 +230,70 @@ export async function saveDraft({ userId, profile, settings, targets, mindBlob =
 }
 
 /**
+ * 建立全新的雲端名片草稿。
+ *
+ * 先用卡蓋圖算出簽章；若資料庫裡已經有一張「同一簽章」的卡（例如
+ * 使用者換了帳號、或在新裝置登入），把原本的檔案複製到新帳號底下，
+ * 這樣就不必請對方重新上傳、重新編譯。
+ *
+ * @param {object} options
+ * @param {string} options.userId 新擁有者
+ * @param {object} options.profile
+ * @param {object} options.settings
+ * @param {Array<object>} options.targets
+ * @returns {Promise<{adopted: boolean, mindBlob: Blob|null}>}
+ */
+export async function createDraftFromTargets({ userId, profile, settings, targets }) {
+  const signature = signatureOf(targets);
+  const { data: match, error } = await client()
+    .from("cards")
+    .select("*")
+    .eq("signature", signature)
+    .neq("user_id", userId)
+    .limit(1)
+    .maybeSingle();
+  if (error) throw fail("查詢既有名片失敗", error);
+
+  if (match) {
+    const mindBlob = match.mind_path ? await download(match.mind_path) : null;
+    if (mindBlob) {
+      await upload(publishedPath(userId, "draft", "card.mind"), mindBlob, "application/octet-stream");
+    }
+    const copied = [];
+    for (let i = 0; i < match.targets.length; i += 1) {
+      const path = match.targets[i].mediaPath;
+      if (!path) { copied.push(null); continue; }
+      const blob = await download(path);
+      const ext = extensionFor(path, match.targets[i].mediaMime);
+      const next = mediaPath(userId, i + 1, ext);
+      if (blob) await upload(next, blob, match.targets[i].mediaMime || "application/octet-stream");
+      copied.push(blob ? next : null);
+    }
+    const row = toCardRow({ userId, profile, settings, targets, signature, mindPath: mindBlob ? publishedPath(userId, "draft", "card.mind") : null });
+    match.targets.forEach((stored, i) => {
+      row.targets[i].label = stored.label;
+      row.targets[i].text = stored.text;
+      row.targets[i].url = stored.url;
+      row.targets[i].mediaPath = copied[i];
+      row.targets[i].mediaName = stored.mediaName;
+      row.targets[i].mediaMime = stored.mediaMime;
+    });
+    const { error: insertError } = await client()
+      .from("cards")
+      .upsert(Object.assign({ user_id: userId, updated_at: new Date().toISOString() }, row), { onConflict: "user_id" });
+    if (insertError) throw fail("建立草稿失敗", insertError);
+    return { adopted: true, mindBlob };
+  }
+
+  const row = toCardRow({ userId, profile, settings, targets, signature, mindPath: null });
+  const { error: insertError } = await client()
+    .from("cards")
+    .upsert(Object.assign({ user_id: userId, updated_at: new Date().toISOString() }, row), { onConflict: "user_id" });
+  if (insertError) throw fail("建立草稿失敗", insertError);
+  return { adopted: false, mindBlob: null };
+}
+
+/**
  * 讀取草稿（含檔案）。
  *
  * @param {string} userId

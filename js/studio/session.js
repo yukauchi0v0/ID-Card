@@ -48,10 +48,10 @@ function openSessionDb() {
 }
 
 /**
- * 把目前編輯狀態寫入 IndexedDB。
+ * 把目前編輯狀態寫入 IndexedDB（離線備援；雲端由 cloud.js 負責）。
  *
- * 沒有 targets 或還沒有 `.mind` 時直接跳過：這不是錯誤，只是還沒東西
- * 可存。Blob/File 可以直接放進 IndexedDB，不需要先轉 base64。
+ * 沒有 targets 時直接跳過：這不是錯誤，只是還沒東西可存。
+ * Blob/File 可以直接放進 IndexedDB，不需要先轉 base64。
  *
  * @returns {Promise<void>}
  */
@@ -101,9 +101,10 @@ export async function saveSession() {
  * 不能直接沿用上次的 canvas，因為瀏覽器關掉後記憶體中的 canvas 已經
  * 沒了。任何單一 target 失敗都只跳過該張，不讓整個還原失敗。
  *
+ * @param {{ silent?: boolean }} [options] 雲端還原時不想再跳「本機設定」提示。
  * @returns {Promise<boolean>} 有還原至少一個 target 時回傳 true。
  */
-export async function restoreSession() {
+export async function restoreSession(options = {}) {
   // restoring 會讓「進入 AR」與上傳按鈕暫時 disabled，避免使用者在
   // 非同步還原途中又上傳新圖，造成 state 競爭。
   state.restoring = true;
@@ -172,7 +173,7 @@ export async function restoreSession() {
     renderProfile();
     updateSettingsUi();
     renderCards();
-    toast("已載入上次儲存在這台手機的設定。", 3600);
+    if (!options.silent) toast("已載入上次儲存在這台手機的設定。", 3600);
     return true;
   } catch (err) {
     console.warn("[ID Card] 讀取本機設定失敗", err);
