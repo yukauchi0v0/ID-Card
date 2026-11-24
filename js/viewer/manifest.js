@@ -1,5 +1,9 @@
 /**
- * 讀取並驗證發布包裡的 `card.json`。
+ * 讀取並驗證卡片資料。
+ *
+ * 兩種來源都支援：
+ * - 雲端：`?card=<8 碼代碼>`，透過 `get_public_card` RPC 取得最新發布版本。
+ * - 舊版靜態包：`?card=cards/<slug>/card.json`，由 fetch 讀同一站的 JSON。
  *
  * 這是 viewer 唯一信任的資料來源；所有相對路徑（card.mind、media/）都
  * 以 manifest 的 URL 為基準解析，因此同一包資料放在任何網域/子目錄都
@@ -7,6 +11,21 @@
  * 才失敗。
  */
 import { CARD_H, DEFAULT_SETTINGS, MAX_TARGETS, TYPE_LABELS } from "../config.js";
+import { getClient } from "../shared/supabase.js";
+
+// 資料庫產生的名片代碼：8 碼、小寫英數（排除容易混淆的 0/1/l/o）。
+const CARD_CODE = /^[a-z0-9]{8}$/;
+
+/**
+ * 判斷 `?card=` 的值是不是雲端名片代碼。
+ * 含斜線的舊版 `cards/<slug>/card.json` 會回 false，走原本的 fetch 流程。
+ *
+ * @param {unknown} value
+ * @returns {boolean}
+ */
+export function isCardCode(value) {
+  return typeof value === "string" && CARD_CODE.test(value);
+}
 
 /** 只接受字串，其他型別（null/數字/物件）一律視為空字串。 */
 function text(value) {
@@ -84,4 +103,35 @@ export async function loadManifest(url) {
   if (!response.ok) throw new Error("讀不到卡片資料（HTTP " + response.status + "）");
   const raw = await response.json();
   return normalizeManifest(raw, absolute.href);
+}
+
+/**
+ * 讀取雲端已發布的名片。
+ *
+ * 只呼叫 `get_public_card` 這個 security definer 函式：它只會回傳
+ * 「最新一版」的 manifest，未發布或代碼不存在都回 null。資料表本身
+ * 受 RLS 保護，viewer 不需要、也不應該直接查表。
+ *
+ * @param {string} code 8 碼名片代碼
+ * @returns {Promise<object>}
+ */
+export async function loadCloudManifest(code) {
+  const client = getClient();
+  if (!client) throw new Error("雲端服務未載入，請重新整理頁面。");
+  const { data, error } = await client.rpc("get_public_card", { p_code: code });
+  if (error) throw new Error("讀取名片失敗，請稍後再試。");
+  if (!data) throw new Error("這張名片還沒有發布。");
+  // 雲端 manifest 的 mind/media 已是絕對網址；baseUrl 只作為保險。
+  return normalizeManifest(data, window.location.href);
+}
+
+/**
+ * 依 `?card=` 的內容決定從哪裡讀。
+ *
+ * @param {string} param 8 碼代碼或 `cards/<slug>/card.json`。
+ * @returns {Promise<object>}
+ */
+export async function resolveManifest(param) {
+  if (isCardCode(param)) return loadCloudManifest(param);
+  return loadManifest(param);
 }

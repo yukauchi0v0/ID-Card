@@ -5,7 +5,7 @@
  * 拒絕或裝置不支援 AR，資訊仍然可用。AR 只是加分，不應阻擋名片內容。
  */
 import { viewerDom } from "./dom.js";
-import { loadManifest } from "./manifest.js";
+import { resolveManifest } from "./manifest.js";
 import { arDom } from "../ar/dom.js";
 import { initArUi, startAr, stopAr } from "../ar/runtime.js";
 
@@ -94,7 +94,7 @@ async function init() {
   }
 
   try {
-    manifest = await loadManifest(cardUrl);
+    manifest = await resolveManifest(cardUrl);
     renderProfile(manifest.profile);
     viewerDom.arBtn.disabled = manifest.targets.length === 0;
   } catch (err) {
