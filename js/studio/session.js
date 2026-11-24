@@ -1,14 +1,13 @@
 /**
  * 製作端本機暫存（IndexedDB）。
  *
- * 只存在這台手機/瀏覽器，不會同步到雲端；用途是讓使用者重新整理或
- * 隔天再打開時，不必重傳卡蓋圖、也不必重新編譯。發布與分享仍然要靠
- * `card-package.js` 匯出的靜態檔，這兩件事不要混在一起。
+ * 之後接上 Supabase 雲端存檔時，這裡仍然是「離線備援」，不是主要來源。
  */
 import { DB_KEY, DB_NAME, DB_STORE, MAX_TARGETS } from "../config.js";
 import { studioState as state } from "./state.js";
 import { studioDom as dom } from "./dom.js";
 import { pad2 } from "../utils/format.js";
+import { signatureOf } from "../utils/signature.js";
 import { loadImage, prepareImageForCompiler } from "../utils/files.js";
 import { slugify } from "../utils/slug.js";
 import { renderCards } from "./ui/targets.js";
@@ -20,16 +19,13 @@ import { toast } from "../shared/toast.js";
 /**
  * 卡蓋圖的「指紋」。
  *
- * 只用檔名 + 大小，不讀圖片內容；對這個用途足夠，而且同步、便宜。
+ * 實作在 `js/utils/signature.js`，這裡只是綁定到目前的製作端狀態。
  * 只要指紋不同，快取的 `.mind` 就不能重用，必須重新編譯。
  *
  * @returns {string}
  */
 export function targetSignature() {
-  return state.targets.map((target) => {
-    const file = target.file;
-    return [file ? file.name : "", file ? file.size : 0].join(":");
-  }).join("|");
+  return signatureOf(state.targets);
 }
 
 /**

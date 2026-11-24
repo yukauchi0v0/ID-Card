@@ -105,3 +105,14 @@ export const CONTENT_FILE_LIMITS = {
   pdf: 40 * 1024 * 1024,
   image: 25 * 1024 * 1024
 };
+
+// 雲端存檔的上傳上限（bytes）。刻意比本機限制更嚴，因為這些檔案要
+// 放在 Supabase Storage（免費方案總共 1 GB），而且對方播放影片時
+// 也吃流量。上傳前先用 `checkUpload()` 在瀏覽器擋一次。
+export const UPLOAD_LIMITS = {
+  cover: 2 * 1024 * 1024,
+  photo: 8 * 1024 * 1024,
+  video: 60 * 1024 * 1024,
+  pdf: 15 * 1024 * 1024,
+  card: 150 * 1024 * 1024
+};
