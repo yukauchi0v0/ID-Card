@@ -39,25 +39,42 @@ export async function getSession() {
   return data.session || null;
 }
 
+/** Supabase 常見錯誤翻成看得懂的中文。 */
+function friendlyAuthError(error) {
+  const message = String((error && error.message) || "");
+  const code = String((error && error.code) || "");
+  if (/rate limit/i.test(message) || code === "over_email_send_rate_limit") {
+    return "寄信太頻繁，暫時不能寄出登入連結。" +
+      "Supabase 內建信箱每小時只能寄少量信件，請等一小時後再試，" +
+      "或到 Supabase 的 Authentication → Users 手動寄一次，也可以改用自己的 SMTP。";
+  }
+  if (/signups not allowed|user not found/i.test(message)) {
+    return "這個 email 還沒有帳號，而且目前不開放自動註冊。請改用管理員建立過的帳號。";
+  }
+  return message || "未知錯誤";
+}
+
 /**
- * 寄出 magic link。
+ * 寄出登入連結。
  *
- * `shouldCreateUser: true` 讓第一次寄信的人自動建立帳號，
- * 不需要另外做註冊流程。
+ * `shouldCreateUser` 預設為 true：第一次寄信的人自動建立帳號，
+ * 不需要另外做註冊流程。若專案有 captcha 或關閉了註冊，可以傳 false
+ * 只寄給已存在的帳號。
  *
  * @param {string} email
+ * @param {{ shouldCreateUser?: boolean }} [options]
  */
-export async function signInWithEmail(email) {
+export async function signInWithEmail(email, options = {}) {
   const client = getClient();
   if (!client) throw new Error(NO_CLOUD);
   const { error } = await client.auth.signInWithOtp({
     email: email.trim(),
     options: {
       emailRedirectTo: authRedirectUrl(),
-      shouldCreateUser: true
+      shouldCreateUser: options.shouldCreateUser !== false
     }
   });
-  if (error) throw new Error("寄出登入連結失敗：" + error.message);
+  if (error) throw new Error("寄出登入連結失敗：" + friendlyAuthError(error));
 }
 
 /**

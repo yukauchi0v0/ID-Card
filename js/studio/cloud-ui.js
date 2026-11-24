@@ -10,6 +10,7 @@ import { studioState as state } from "./state.js";
 import { studioDom as dom } from "./dom.js";
 import { arDom } from "../ar/dom.js";
 import { getSession, onAuthChange, signInWithEmail, signOut } from "./auth.js";
+import { getClient } from "../shared/supabase.js";
 import {
   createDraftFromTargets,
   getMyProfile,
@@ -252,6 +253,62 @@ async function handlePublish() {
 }
 
 /**
+ * 處理 magic link 回來時網址上的參數。
+ *
+ * Supabase 的連結可能長成：
+ *   ?code=...            PKCE 流程（現代預設）
+ *   #access_token=...    implicit 流程（舊版或設定不同時）
+ *   或是失敗時帶 error / error_description
+ *
+ * 不管是哪一種，結果都直接寫在畫面上，避免「點完連結又回到登入畫面」
+ * 卻沒有任何說明。
+ *
+ * @returns {Promise<boolean>} 網址沒有登入參數、可繼續一般初始化時回 true。
+ */
+async function handleAuthLink() {
+  const url = new URL(window.location.href);
+  const hash = new URLSearchParams(url.hash.replace(/^#/, ""));
+  const hasCode = url.searchParams.has("code");
+  const hasToken = hash.has("access_token");
+  const failed = url.searchParams.get("error") || hash.get("error");
+  const describe = url.searchParams.get("error_description") || hash.get("error_description") || "";
+  if (!hasCode && !hasToken && !failed) return true;
+
+  // 不管成功或失敗都先把參數清掉，重新整理時才不會重複交換已用過的 code。
+  window.history.replaceState(null, "", url.pathname);
+
+  if (failed) {
+    const expired = /expired|invalid/i.test(describe) || /expired|invalid/i.test(failed);
+    dom.signInStatus.textContent = expired
+      ? "登入連結已過期或已使用過。請重新填 email，再寄一次登入連結。"
+      : "登入失敗：" + (describe || failed) + "。請重新寄一次登入連結。";
+    toast("登入連結無效或已過期，請重新寄一次。", 6000);
+    return false;
+  }
+
+  dom.signInStatus.textContent = "正在完成登入…";
+  const client = getClient();
+  if (hasCode && client) {
+    // detectSessionInUrl 會自動交換 code；這裡等它完成，失敗時才給提示。
+    const { error } = await client.auth.exchangeCodeForSession(
+      url.searchParams.get("code")
+    );
+    if (error) {
+      dom.signInStatus.textContent = "登入失敗：" + error.message + "。請重新寄一次登入連結。";
+      toast("登入失敗，請重新寄一次。", 6000);
+      return false;
+    }
+  }
+  const session = await getSession().catch(() => null);
+  if (!session) {
+    dom.signInStatus.textContent = "沒有取得登入狀態。請回到信箱重點一次連結，或重新寄送。";
+    return false;
+  }
+  dom.signInStatus.textContent = "登入完成。";
+  return true;
+}
+
+/**
  * 初始化雲端功能；由 studio/app.js 在 initApp() 中呼叫。
  *
  * 這裡會等到「登入狀態」確定之後才回傳，讓 app.js 知道要不要再載入
@@ -342,6 +399,8 @@ export async function initCloudUi() {
   }
 
   renderAccount("");
+  const link = await handleAuthLink();
+  if (!link) return false;
   try {
     const session = await getSession();
     if (!session) return false;

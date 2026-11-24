@@ -53,6 +53,8 @@ export const studioDom = {
   stabilitySelect: byId("stabilitySelect"),
 
   // 雲端帳號：登入表單、登入後的顯示名稱與名片代碼。
+  accountSignedOut: byId("accountSignedOut"),
+  accountSignedIn: byId("accountSignedIn"),
   accountEmail: byId("accountEmail"),
   displayName: byId("displayName"),
   saveDisplayName: byId("saveDisplayName"),
