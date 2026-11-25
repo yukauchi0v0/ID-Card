@@ -1,2 +1,2 @@
 /** 版本號：同一個版本內，模組網址不變，瀏覽器就能沿用快取。 */
-export const APP_VERSION = "2026-11-25.6";
+export const APP_VERSION = "2026-11-26.1";

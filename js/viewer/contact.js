@@ -2,7 +2,7 @@
  * 觀看端「聯絡區」：社群按鈕、儲存名片（vCard）、分享名片。
  *
  * 這個模組只負責把名片資料變成按鈕與檔案，不決定何時顯示；
- * 顯示時機由 `app.js` 的 `revealed` 旗標控制（看完 AR 才出現）。
+ * 顯示時機由 `app.js` 的 `showProfile()` 決定（名片一載入就顯示）。
  *
  * iOS Safari 的限制：`navigator.share()` 必須在使用者手勢中「直接」呼叫，
  * 一旦先 await 其他 Promise（例如產生 vCard Blob），Safari 會判定不是
@@ -102,7 +102,7 @@ export function initContactActions() {
 
 /**
  * 名片是否有值得顯示的聯絡方式。
- * 只有姓名/公司時不顯示聯絡區，避免出現一個空白的「看完 AR 了？」區塊。
+ * 只有姓名/公司時不顯示聯絡區，避免出現一個空白的「聯絡我」區塊。
  *
  * @param {object} profile
  * @returns {boolean}

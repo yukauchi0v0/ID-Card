@@ -24,7 +24,7 @@ export const viewerDom = {
   website: byId("viewerWebsite"),
   arBtn: byId("viewerArBtn"),
 
-  // 聯絡區（看完 AR 後才顯示）：社群按鈕、儲存名片、分享名片。
+  // 聯絡區（名片一打開就顯示）：社群按鈕、儲存名片、分享名片。
   contact: byId("viewerContact"),
   links: byId("viewerLinks"),
   actions: byId("viewerActions"),

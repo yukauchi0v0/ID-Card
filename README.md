@@ -63,15 +63,15 @@ cards/<slug>/
 ### 觀看名片
 
 1. 掃名片上的 QR，或開啟觀看網址（`viewer.html?card=<代碼>`）。
-2. 觀看端向 Supabase 讀取最新已發布的名片，顯示姓名、職稱、公司、電話、Email、網站。
-   這時**還不會**出現社群按鈕與聯絡動作。
-3. 按「用 AR 看」，允許相機權限。
-4. 把鏡頭對準卡蓋圖案；鎖定後可左右滑動換頁，或滑動卡蓋切換圖案。
-5. 看完之後，按「返回名片」或 AR 畫面下方的「看完了？聯絡我 →」回到名片頁；
-   這時才顯示聯絡區：
+2. 觀看端向 Supabase 讀取最新已發布的名片，顯示姓名、職稱、公司、電話、Email、網站，
+   下方就是「聯絡我」區：
    - 社群按鈕（LINE、Instagram、Threads、Facebook、X、LinkedIn、GitHub、自訂網址）
    - 「儲存名片」下載 `.vcf`，可直接加到手機通訊錄
    - 「分享這張名片」用系統分享面板；不支援時複製網址
+3. 按「用 AR 看」，允許相機權限。
+4. 把鏡頭對準卡蓋圖案；鎖定後可左右滑動換頁，或滑動卡蓋切換圖案。
+5. 看完之後，按「返回名片」或 AR 畫面下方的「看完了？聯絡我 →」回到名片頁，
+   會自動捲到「聯絡我」區。
 
 > 社群按鈕只會產生 http(s) 連結；`javascript:` 之類的輸入會在寫入資料庫前就丟掉，
 > vCard 的文字也會轉義，避免姓名裡的換行變成額外欄位。
@@ -127,7 +127,7 @@ js/
       enter-button.js
   viewer/
     main.js                 注入 AR shell，載入 viewer app
-    app.js                  讀 manifest、名片頁、啟動 AR、看完才顯示聯絡區
+    app.js                  讀 manifest、名片頁（含聯絡區）、啟動 AR
     contact.js              社群按鈕、儲存名片（vCard）、分享名片
     dom.js                  觀看端 DOM refs
     manifest.js             短代碼／舊式路徑解析、manifest 驗證
@@ -229,7 +229,7 @@ node --check js/ar/runtime.js
 
 1. 在 `cards/test-card/` 放一份 `card.json`（含 `profile.links`）與任意 `card.mind`。
 2. 開 `viewer.html?card=cards/test-card/card.json`。
-3. 確認：一開始看不到聯絡區；AR 鎖定後 HUD 出現「看完了？聯絡我」；按下之後聯絡區出現、社群網址正確、`javascript:` 會被忽略。
+3. 確認：名片一打開就看得到「聯絡我」區與社群網址，`javascript:` 會被忽略；AR 鎖定後 HUD 出現「看完了？聯絡我」，按下之後回到名片並捲到聯絡區。
 4. 按「儲存名片」應下載 `.vcf`；按「分享這張名片」在支援的瀏覽器會開系統分享，不支援時複製網址。
 
 ## 部署

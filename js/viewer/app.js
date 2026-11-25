@@ -4,9 +4,9 @@
  * 這個順序是刻意的：收到名片的人先看到姓名/電話/Email，即使相機權限被
  * 拒絕或裝置不支援 AR，資訊仍然可用。AR 只是加分，不應阻擋名片內容。
  *
- * 聯絡區（社群按鈕、儲存名片、分享名片）要看完 AR 之後才出現：
- * 第一次打開只給基本資料與「用 AR 看」，看完再提供聯絡方式，
- * 順序才符合「先體驗、後交換聯絡」。
+ * 聯絡區（社群按鈕、儲存名片、分享名片）在名片一打開就顯示，
+ * 不必先看完 AR：對方可能只是想存名片，不該被擋在體驗後面。
+ * 看完 AR 回到名片頁時，會自動捲到這一區。
  */
 import { viewerDom } from "./dom.js";
 import { resolveManifest } from "./manifest.js";
@@ -16,25 +16,22 @@ import { hasContactInfo, initContactActions, renderContactActions } from "./cont
 import { normalizeHttpUrl } from "../utils/format.js";
 
 let manifest = null;
-// 是否已經看完一次 AR；決定名片頁要不要顯示聯絡區。
-let revealed = false;
 
-/** 回到名片頁，並依 manifest 狀態決定 AR 按鈕是否可用。 */
+/** 回到名片頁，並依 manifest 狀態決定 AR 按鈕與聯絡區是否可用。 */
 function showProfile() {
   viewerDom.profile.hidden = false;
   viewerDom.error.hidden = true;
   viewerDom.loading.hidden = true;
   viewerDom.arBtn.disabled = !manifest || manifest.targets.length === 0;
   document.body.classList.remove("ar-active");
-  // 只有看過 AR（或直接返回）才顯示聯絡區；用 class 控制，讓 CSS 決定排版。
-  const showContact = revealed && manifest && hasContactInfo(manifest.profile);
+  // 有社群或聯絡方式就顯示聯絡區；沒有任何資料時整區隱藏，避免空標題。
+  const showContact = Boolean(manifest && hasContactInfo(manifest.profile));
   viewerDom.contact.hidden = !showContact;
-  document.body.classList.toggle("contact-ready", Boolean(showContact));
+  document.body.classList.toggle("contact-ready", showContact);
 }
 
-/** 看完 AR 回到名片頁：顯示聯絡區並捲到那裡。 */
+/** 從 AR 回到名片頁：停止相機、顯示名片（需要時捲到聯絡區）。 */
 function revealContact({ scroll = false } = {}) {
-  revealed = true;
   stopAr();
   showProfile();
   if (scroll && !viewerDom.contact.hidden) {
@@ -93,6 +90,11 @@ function renderProfile(profile) {
   contactLink(viewerDom.website, website, website);
 
   document.title = profile.name ? profile.name + " · ID Card" : "ID Card · Viewer";
+
+  // 名片一載入就把聯絡區顯示起來，不必等 AR；沒有任何聯絡資料時整區隱藏。
+  const showContact = hasContactInfo(profile);
+  viewerDom.contact.hidden = !showContact;
+  document.body.classList.toggle("contact-ready", showContact);
 }
 
 /**
@@ -113,9 +115,10 @@ async function init() {
   try {
     manifest = await resolveManifest(cardUrl);
     renderProfile(manifest.profile);
-    // 聯絡區先建好（隱藏狀態），等看完 AR 再一次顯示。
+    // 聯絡區在名片載入時就建好並顯示（由 showProfile() 依資料決定是否隱藏）。
     renderContactActions(manifest.profile);
     viewerDom.arBtn.disabled = manifest.targets.length === 0;
+    showProfile();
   } catch (err) {
     showError(err.message || "卡片資料格式不正確。");
     return;
@@ -156,7 +159,7 @@ async function init() {
 
   arDom.backBtn.addEventListener("click", () => revealContact());
   arDom.errorBackBtn.addEventListener("click", () => {
-    // 相機失敗也讓人回到名片；但沒看到 AR 就不算看完，聯絡區維持隱藏。
+    // 相機失敗也讓人回到名片；聯絡區本來就顯示著，不需要額外處理。
     stopAr();
     showProfile();
   });

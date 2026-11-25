@@ -88,7 +88,7 @@ body {
   line-height: 1.6;
 }
 
-/* 看完 AR 後才出現的聯絡區：上方一條分隔線，下方是社群按鈕與兩個動作。 */
+/* 聯絡區（一打開名片就顯示）：上方一條分隔線，下方是社群按鈕與兩個動作。 */
 .viewer-contact-panel {
   margin-top: 22px;
   padding-top: 18px;
