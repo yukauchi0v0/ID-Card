@@ -199,6 +199,17 @@ python -m http.server 8767
 本機測試登入時，記得在 Supabase 的 Redirect URLs 加上
 `http://localhost:8767/studio.html`，否則 magic link 會導向正式網址。
 
+## 疑難排解
+
+**換一台裝置登入後畫面是空的**
+
+雲端草稿要靠卡蓋圖才還原得起來，所以「存到雲端成功」一定要連卡蓋圖一起上去。早期版本的卡蓋圖是 `<img>` 元素、沒有 `toBlob()`，上傳時會被靜默跳過，雲端只剩卡片資料列，換裝置登入時整份草稿就被丟棄。現在的作法：
+
+- `js/studio/cloud.js` 的 `imageToPngBlob()` 會把 `<img>` 用 canvas 轉成 PNG 再上傳；轉不出來就丟錯，畫面會顯示「儲存草稿失敗」。
+- 入口 `js/studio/main.js`、`js/viewer/main.js` 用 `js/version.js` 的 `APP_VERSION` 動態載入 app，避免新版上線後瀏覽器還在跑舊的模組快取。**改程式時要一起調高 `APP_VERSION`。**
+
+排查順序：登入後按「存到雲端」，確認 toast 是「已存到雲端。」；仍空白就開 DevTools → Application → Storage，看 `card-assets/<uid>/draft/covers/1.png` 是否存在。
+
 ## 測試
 
 ```bash
