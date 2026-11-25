@@ -93,7 +93,7 @@ export function renderCards() {
       <article class="target-card" data-id="${target.id}">
         <div class="target-top">
           <div class="thumb">
-            <img src="${escapeHtml(target.previewUrl)}" alt="卡蓋圖案 ${index + 1} 預覽" />
+            <img src="${escapeHtml(target.previewUrl)}" alt="卡蓋圖案 ${index + 1} 預覽" draggable="false" />
             <span class="thumb-index">${pad2(index + 1)}</span>
           </div>
           <div class="target-fields">
@@ -289,19 +289,43 @@ export function initTargets() {
     renderCards();
   });
 
+  // 拖放事件綁在整份文件上，而不是只綁在 dropZone：
+  // 手指從卡蓋圖上開始拖曳時（手機長按、桌機拖圖片），dragover 不會經過
+  // dropZone，瀏覽器就找不到 drop 目標，整個手勢會被當成取消、連點擊都被吃掉。
+  // 由這裡統一接管後，只有「真的放進上傳區」才加入卡蓋，其他位置的放開一律忽略。
+  const overDropZone = (event) => {
+    const zone = dom.dropZone.getBoundingClientRect();
+    return (
+      event.clientX >= zone.left &&
+      event.clientX <= zone.right &&
+      event.clientY >= zone.top &&
+      event.clientY <= zone.bottom
+    );
+  };
+
   ["dragenter", "dragover"].forEach((eventName) => {
-    dom.dropZone.addEventListener(eventName, (event) => {
-      event.preventDefault();
-      if (state.targets.length < MAX_TARGETS && !state.adding) dom.dropZone.classList.add("drag");
-    });
+    document.addEventListener(
+      eventName,
+      (event) => {
+        event.preventDefault();
+        const inside = overDropZone(event);
+        const canAccept = inside && state.targets.length < MAX_TARGETS && !state.adding;
+        if (event.dataTransfer) event.dataTransfer.dropEffect = canAccept ? "copy" : "none";
+        dom.dropZone.classList.toggle("drag", canAccept);
+      },
+      true
+    );
   });
+
   ["dragleave", "drop"].forEach((eventName) => {
-    dom.dropZone.addEventListener(eventName, (event) => {
-      event.preventDefault();
+    document.addEventListener(eventName, (event) => {
+      if (eventName === "drop") event.preventDefault();
       dom.dropZone.classList.remove("drag");
     });
   });
-  dom.dropZone.addEventListener("drop", (event) => {
+
+  document.addEventListener("drop", (event) => {
+    if (!overDropZone(event)) return;
     if (event.dataTransfer && event.dataTransfer.files) addFiles(event.dataTransfer.files);
   });
 }

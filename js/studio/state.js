@@ -20,6 +20,10 @@ export const studioState = {
   mindSignature: "",
   uid: 0,
 
+  // 目前內容所屬的帳號（Supabase user id）；空字串代表未登入。
+  // 本機暫存會記下這個值，避免把別的帳號的名片寫進自己的雲端。
+  ownerId: "",
+
   profile: { ...DEFAULT_PROFILE, links: [] },
   settings: { ...DEFAULT_SETTINGS }
 };

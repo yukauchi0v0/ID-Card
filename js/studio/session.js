@@ -65,15 +65,17 @@ function openSessionDb() {
  * 沒有 targets 時直接跳過：這不是錯誤，只是還沒東西可存。
  * Blob/File 可以直接放進 IndexedDB，不需要先轉 base64。
  *
+ * @param {{ ownerId?: string }} [options] 目前登入者；用來分辨暫存屬於哪個帳號。
  * @returns {Promise<void>}
  */
-export async function saveSession() {
+export async function saveSession(options = {}) {
   if (!state.targets.length || !state.mindBlob) return;
   const db = await openSessionDb();
   try {
     const payload = {
       version: 1,
       savedAt: Date.now(),
+      ownerId: options.ownerId || "",
       profile: Object.assign({}, state.profile),
       settings: Object.assign({}, state.settings),
       signature: state.mindSignature,
@@ -113,7 +115,9 @@ export async function saveSession() {
  * 不能直接沿用上次的 canvas，因為瀏覽器關掉後記憶體中的 canvas 已經
  * 沒了。任何單一 target 失敗都只跳過該張，不讓整個還原失敗。
  *
- * @param {{ silent?: boolean }} [options] 雲端還原時不想再跳「本機設定」提示。
+ * @param {{ silent?: boolean, ownerId?: string }} [options]
+ *   silent：雲端還原時不想再跳「本機設定」提示。
+ *   ownerId：目前登入者；與暫存擁有者不同時不還原。
  * @returns {Promise<boolean>} 有還原至少一個 target 時回傳 true。
  */
 export async function restoreSession(options = {}) {
@@ -173,6 +177,18 @@ export async function restoreSession(options = {}) {
     }
     if (!restored.length) return false;
 
+    // 換裝置時，先前登入留下的本機暫存可能是「別的帳號」的內容。
+    // 這種情況直接丟掉，避免雲端草稿讀取失敗時把別人的名片存到自己帳號。
+    const previousOwner = record.ownerId || "";
+    if (options.ownerId && previousOwner && previousOwner !== options.ownerId) {
+      restored.forEach((target) => {
+        if (target.previewUrl) URL.revokeObjectURL(target.previewUrl);
+        if (target.contentObjectUrl) URL.revokeObjectURL(target.contentObjectUrl);
+      });
+      console.warn("[ID Card] 本機暫存屬於其他帳號，已略過。");
+      return false;
+    }
+
     state.targets = restored;
     state.uid = Math.max.apply(null, restored.map((target) => target.id).concat([state.uid]));
     // profile 可能是舊版沒有 slug 的資料；用 name 補一個穩定 slug。
@@ -181,6 +197,7 @@ export async function restoreSession(options = {}) {
     state.settings = Object.assign({}, state.settings, record.settings || {});
     state.mindBlob = record.mindBlob || null;
     state.mindSignature = record.signature || "";
+    state.ownerId = previousOwner;
     loaded = true;
     // 先讓表單與設定 UI 反映還原值，再重畫卡片清單。
     renderProfile();

@@ -15,6 +15,7 @@ import { initTargets, renderCards } from "./ui/targets.js";
 import { initSettings, updateSettingsUi } from "./ui/settings.js";
 import { initProfile } from "./profile.js";
 import { initSocialLinks } from "./social-ui.js";
+import { getSession } from "./auth.js";
 import { initCloudUi } from "./cloud-ui.js";
 import { initArUi, startAr, stopAr } from "../ar/runtime.js";
 import { arDom } from "../ar/dom.js";
@@ -111,10 +112,7 @@ async function enterAr() {
       });
       state.compiling = false;
       updateEnterButton();
-      saveSession().catch((err) => {
-        console.warn("[ID Card] 本機儲存失敗", err);
-        toast("這次設定無法寫入手機儲存空間，可能已滿。", 5200);
-      });
+      persistLocal();
       return;
     } catch (err) {
       console.error("[ID Card] 載入快取 .mind 失敗", err);
@@ -162,10 +160,7 @@ async function enterAr() {
     state.compiling = false;
     updateEnterButton();
     // 儲存是「盡力而為」：即使 IndexedDB 滿了，也不應阻止使用者進入 AR。
-    saveSession().catch((err) => {
-      console.warn("[ID Card] 本機儲存失敗", err);
-      toast("這次設定無法寫入手機儲存空間，可能已滿。", 5200);
-    });
+    persistLocal();
     if (featureCount < 40) {
       window.setTimeout(() => toast("這張卡蓋圖案的特徵偏少，若一直抖動，建議換成霧面卡套或加高對比圖案。", 6200), 2600);
     }
@@ -178,6 +173,27 @@ async function enterAr() {
     exitAr();
     toast("編譯失敗：" + (err && err.message ? err.message : "請換一張圖案重試。"), 5600);
   }
+}
+
+/** 本機暫存的擁有者（帳號 id）；用來避免把別人的名片寫進自己帳號的雲端。 */
+let ownerId = "";
+
+/** 記下目前登入者，讓本機暫存標上擁有者。 */
+async function rememberOwner() {
+  try {
+    const session = await getSession();
+    if (session && session.user) ownerId = session.user.id;
+  } catch (err) {
+    console.warn("[ID Card] 讀取登入狀態失敗", err);
+  }
+}
+
+/** 把目前內容寫回本機暫存；儲存是盡力而為，失敗不影響使用。 */
+function persistLocal() {
+  saveSession({ ownerId }).catch((err) => {
+    console.warn("[ID Card] 本機儲存失敗", err);
+    toast("這次設定無法寫入手機儲存空間，可能已滿。", 5200);
+  });
 }
 
 /** 離開 AR，恢復設定頁並重設按鈕狀態。 */
@@ -229,13 +245,14 @@ export function initApp() {
 
   // 雲端初始化是非同步的：先讓畫面可用，登入狀態確定後才決定要還原
   // 雲端草稿還是本機暫存。
-  initCloudUi()
+  rememberOwner()
+    .then(() => initCloudUi())
     .then((signedIn) => {
-      if (!signedIn) restoreSession();
+      if (!signedIn) return restoreSession({ ownerId });
     })
     .catch((err) => {
       console.warn("[ID Card] 雲端初始化失敗", err);
-      restoreSession();
+      return restoreSession({ ownerId });
     });
 
   if (!window.AFRAME) toast("A-Frame 載入失敗，請檢查網路後重新整理。", 6000);

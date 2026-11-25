@@ -22,7 +22,7 @@ import {
 import { renderCards } from "./ui/targets.js";
 import { updateSettingsUi } from "./ui/settings.js";
 import { renderProfile } from "./profile.js";
-import { hasLocalSession, targetSignature } from "./session.js";
+import { hasLocalSession, restoreSession, targetSignature } from "./session.js";
 import { initShare, openShare } from "./share.js";
 import { pad2 } from "../utils/format.js";
 import { slugify } from "../utils/slug.js";
@@ -124,6 +124,8 @@ async function restoreDraft(draft) {
   state.settings = Object.assign({}, state.settings, row.settings || {});
   state.mindBlob = mindBlob || null;
   state.mindSignature = mindBlob ? row.signature || "" : "";
+  // 還原時保留目前登入者身分，本機暫存才不會被標成「其他帳號」。
+  state.ownerId = userId;
   renderProfile();
   updateSettingsUi();
   renderCards();
@@ -137,7 +139,7 @@ async function restoreDraft(draft) {
  *
  * @param {object} session Supabase session
  */
-async function onSignedIn(session) {
+export async function adoptSession(session) {
   userId = session.user.id;
   const me = await getMyProfile();
   cardCode = me.cardCode;
@@ -151,6 +153,11 @@ async function onSignedIn(session) {
   const draft = await loadDraft(userId);
   if (draft) {
     await restoreDraft(draft);
+    if (!state.targets.length) {
+      // 雲端有資料但檔案抓不回來時，退回這台裝置上的暫存，讓使用者至少能接著編輯。
+      await restoreSession({ ownerId: userId }).catch(() => false);
+      dom.publishedInfo.textContent = publishedText();
+    }
     toast("已登入：" + (session.user.email || "你的帳號"), 3200);
     dom.signInStatus.textContent = "已登入。";
     return;
@@ -442,7 +449,7 @@ export async function initCloudUi() {
         return;
       }
       if (session.user.id === userId) return;
-      onSignedIn(session).catch((err) => {
+      adoptSession(session).catch((err) => {
         toast("讀取雲端資料失敗：" + (err && err.message ? err.message : "請稍後再試。"), 6000);
       });
     });
@@ -459,8 +466,20 @@ export async function initCloudUi() {
   try {
     const session = await getSession();
     if (!session) return false;
-    await onSignedIn(session);
-    return true;
+    try {
+      await adoptSession(session);
+      return true;
+    } catch (err) {
+      // 雲端讀取失敗（權限、離線、檔案建立失敗）時退回本機暫存，
+      // 不要讓使用者看到一片空白卻不知道原因。
+      console.warn("[ID Card] 雲端草稿載入失敗，改用本機暫存", err);
+      dom.signInStatus.textContent = "雲端資料讀取失敗：" + (err && err.message ? err.message : "") + "；先使用這台裝置的暫存。";
+      toast("雲端資料讀取失敗，先使用這台裝置的暫存。", 6000);
+      userId = userId || session.user.id;
+      await restoreSession({ ownerId: userId }).catch(() => false);
+      renderAccount(session.user.email);
+      return true;
+    }
   } catch (err) {
     // 未載入 bundle（離線或舊快取）時，製作端仍要能用。
     dom.signInStatus.textContent = err.message || "雲端服務暫時無法使用。";
