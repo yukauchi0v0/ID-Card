@@ -140,6 +140,39 @@ export function checkUpload(kind, file, usedBytes = 0) {
   return { ok: true };
 }
 
+/**
+ * 把卡蓋圖轉成 PNG Blob。
+ *
+ * 上傳後的卡蓋圖可能是 `<canvas>`（測試、重新產生的預覽）也可能是
+ * `<img>`（Image.decode 後真正的畫面）。`<img>` 沒有 `toBlob()`，
+ * 這裡用 canvas 重畫一次，否則卡蓋圖會「看起來存好了、其實沒上傳」，
+ * 換裝置登入時就會得到空白的名片。
+ *
+ * 轉不出 PNG 時丟出錯誤：寧可讓使用者看到「儲存草稿失敗」，
+ * 也不要默默存出一份沒有卡蓋圖的草稿。
+ *
+ * @param {HTMLCanvasElement|HTMLImageElement|null} image
+ * @returns {Promise<Blob|null>}
+ */
+export async function imageToPngBlob(image) {
+  if (!image) return null;
+  if (typeof image.toBlob === "function") {
+    return new Promise((resolve) => image.toBlob(resolve, "image/png"));
+  }
+  const width = image.naturalWidth || image.width;
+  const height = image.naturalHeight || image.height;
+  if (!width || !height) throw new Error("卡蓋圖尺寸無效，無法上傳到雲端。");
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("無法建立 Canvas，卡蓋圖無法上傳到雲端。");
+  context.drawImage(image, 0, 0, width, height);
+  const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+  if (!blob) throw new Error("卡蓋圖轉檔失敗，無法上傳到雲端。");
+  return blob;
+}
+
 /** 上傳單一檔案（已存在就覆蓋）。 */
 async function upload(path, blob, contentType) {
   const { error } = await client()
@@ -180,12 +213,7 @@ export async function saveDraft({ userId, profile, settings, targets, mindBlob =
 
   for (const index of coverIdx) {
     const target = targets[index - 1];
-    const image = target && target.img;
-    if (!image) continue;
-    const blob = await new Promise((resolve) => {
-      if (image.toBlob) image.toBlob(resolve, "image/png");
-      else resolve(null);
-    });
+    const blob = await imageToPngBlob(target && target.img);
     if (blob) await upload(coverPath(userId, index), blob, "image/png");
   }
 
@@ -236,6 +264,13 @@ export async function saveDraft({ userId, profile, settings, targets, mindBlob =
  */
 export async function createDraftFromTargets({ userId, profile, settings, targets }) {
   const signature = signatureOf(targets);
+  if (!signature) {
+    // 沒有卡蓋圖就沒有可辨識的簽章；直接寫自己的草稿（不複製別的帳號的檔案）。
+    const row = toCardRow({ userId, profile, settings, targets, signature: "", mindPath: null });
+    const { error: insertError } = await client().from("cards").upsert(Object.assign({ user_id: userId, updated_at: new Date().toISOString() }, row), { onConflict: "user_id" });
+    if (insertError) throw fail("建立草稿失敗", insertError);
+    return { adopted: false, mindBlob: null };
+  }
   const { data: match, error } = await client()
     .from("cards")
     .select("*")

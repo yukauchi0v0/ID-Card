@@ -95,3 +95,36 @@ test("卡蓋圖指紋相同輸入得到相同結果", async () => {
   assert.equal(signatureOf(targets), "a.png:10|b.png:20");
   assert.equal(signatureOf(targets), signatureOf(targets));
 });
+
+test("卡蓋圖是 <img> 時也要轉出 PNG（沒有 toBlob 就走 canvas）", async () => {
+  const { imageToPngBlob } = await import("../js/studio/cloud.js");
+  const drawn = [];
+  const fakeBlob = { size: 123, type: "image/png" };
+  globalThis.document = {
+    createElement() {
+      return {
+        width: 0,
+        height: 0,
+        getContext() {
+          return { drawImage: () => drawn.push("draw") };
+        },
+        toBlob(callback) {
+          callback(fakeBlob);
+        }
+      };
+    }
+  };
+  try {
+    const img = { naturalWidth: 400, naturalHeight: 250 };
+    const blob = await imageToPngBlob(img);
+    assert.equal(blob, fakeBlob);
+    assert.deepEqual(drawn, ["draw"]);
+  } finally {
+    delete globalThis.document;
+  }
+});
+
+test("卡蓋圖無法轉檔時丟錯，而不是默默存一份沒有圖的草稿", async () => {
+  const { imageToPngBlob } = await import("../js/studio/cloud.js");
+  await assert.rejects(() => imageToPngBlob({ naturalWidth: 0, naturalHeight: 0 }), /尺寸無效/);
+});
